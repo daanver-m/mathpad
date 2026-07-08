@@ -362,6 +362,8 @@ const DEFAULT_CONTENT={
 const EDIT_BLOCKS={};
 
 const PAD_ASSIGNMENTS={};
+const PASSWORDS={};
+const TEMP_PASSWORDS={};
 
 function padAssignKey(padId, targetId){ return padId+'__'+targetId; }
 function getAssign(padId, targetId){ return PAD_ASSIGNMENTS[padAssignKey(padId,targetId)]||null; }
@@ -382,12 +384,95 @@ let S={
   modal:null,
 };
 const $=id=>document.getElementById(id);
+// ══════════════════════════════════════════════
+// LOCALSTORAGE PERSISTENTIE
+// ══════════════════════════════════════════════
+const LS_DATA='mathpad_data_v1';
+const LS_SESSION='mathpad_session_v1';
+
+function saveToLS(){
+  try{
+    const data={
+      accounts:ACCOUNTS,
+      students:[...T_STUDENTS],
+      pending:[...T_PENDING],
+      subs:[...SUBS],
+      classes:[...CLASSES_DATA],
+      pads:[...PADS],
+      editBlocks:EDIT_BLOCKS,
+      folders:[...FOLDERS],
+      padAssignments:{...PAD_ASSIGNMENTS},
+      studentPadAccess:S.studentPadAccess||{},
+      passwords:{...PASSWORDS},
+      tempPasswords:{...TEMP_PASSWORDS},
+    };
+    localStorage.setItem(LS_DATA,JSON.stringify(data));
+  }catch(e){console.warn('LS opslaan mislukt:',e);}
+}
+
+function loadFromLS(){
+  try{
+    const raw=localStorage.getItem(LS_DATA);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(d.accounts)Object.assign(ACCOUNTS,d.accounts);
+    if(d.students){T_STUDENTS.length=0;T_STUDENTS.push(...d.students);}
+    if(d.pending){T_PENDING.length=0;T_PENDING.push(...d.pending);}
+    if(d.subs){SUBS.length=0;SUBS.push(...d.subs);}
+    if(d.classes){
+      CLASSES_DATA.length=0;CLASSES_DATA.push(...d.classes);
+      CLASSES_DATA.forEach(c=>{CLASSES[c.id]=c;});
+    }
+    if(d.pads){PADS.length=0;PADS.push(...d.pads);}
+    if(d.editBlocks)Object.assign(EDIT_BLOCKS,d.editBlocks);
+    if(d.folders){FOLDERS.length=0;FOLDERS.push(...d.folders);}
+    if(d.padAssignments)Object.assign(PAD_ASSIGNMENTS,d.padAssignments);
+    if(d.studentPadAccess)S.studentPadAccess=d.studentPadAccess;
+    if(d.passwords)Object.assign(PASSWORDS,d.passwords);
+    if(d.tempPasswords)Object.assign(TEMP_PASSWORDS,d.tempPasswords);
+    return true;
+  }catch(e){console.warn('LS laden mislukt:',e);return false;}
+}
+
+function saveSession(){
+  try{
+    if(S.user)localStorage.setItem(LS_SESSION,JSON.stringify({userId:S.user.id,screen:S.screen,tTab:S.tTab}));
+    else localStorage.removeItem(LS_SESSION);
+  }catch(e){}
+}
+
+function loadSession(){
+  try{
+    const raw=localStorage.getItem(LS_SESSION);
+    if(!raw)return;
+    const sess=JSON.parse(raw);
+    const user=ACCOUNTS[sess.userId];
+    if(user){
+      S.user=user;
+      S.screen=sess.screen||(user.role==='teacher'?'teacher':'dash');
+      S.tTab=sess.tTab||'dashboard';
+    }
+  }catch(e){}
+}
+
 function upd(u){
   if(u.modal===null || (u.modal && u.modal.type !== S.modal?.type)){
-    S.modalFolderExp = new Set(); // reset mapexpansie bij elke nieuwe modal
+    S.modalFolderExp = new Set();
   }
-  Object.assign(S,u);render();
+  Object.assign(S,u);
+  saveToLS();
+  saveSession();
+  render();
 }
+
+// Luister naar wijzigingen vanuit andere tabbladen (bv. leerling registreert)
+window.addEventListener('storage',e=>{
+  if(e.key===LS_DATA){
+    loadFromLS();
+    render();
+    if(S.screen==='teacher')showToast('Nieuwe activiteit geladen','info');
+  }
+});
 
 function av(name,color,sz=32){
   const p=name.trim().split(' ');const init=(p[0][0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase();const fs=Math.floor(sz*.37);
@@ -410,11 +495,12 @@ function render(){
 
 function authHTML(){
   const isL=S.authMode==='login';
+  const isForgot=S.authMode==='forgot';
   return`<div class="auth"><div class="auth-card">
     <div class="auth-logo">
       <div class="auth-logo-ic">M</div><h1>MathPad</h1><p>Interactief wiskundeplatform voor onderwijs</p>
     </div>
-    <div class="tabs-bar">
+    ${isForgot?forgotF():`<div class="tabs-bar">
       <button class="taab${isL?' on':''}" onclick="upd({authMode:'login',authErrs:{}})">Aanmelden</button>
       <button class="taab${!isL?' on':''}" onclick="upd({authMode:'register',authErrs:{}})">Registreren</button>
     </div>
@@ -424,8 +510,79 @@ function authHTML(){
         Leerlingen melden zich aan met hun gebruikersnaam en wachtwoord.<br>
         Nog geen account? Klik op <strong>Registreren</strong> en voer de leerkrachtcode in.
       </div>
-    </div>
+    </div>`}
   </div></div>`;
+}
+function forgotF(){
+  const e=S.authErrs||{};const step=S.forgotStep||1;
+  const fv=S.forgotValues||{};
+  const stepLabel=['','Stap 1 van 3','Stap 2 van 3','Stap 3 van 3'][step];
+  return`<div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <button onclick="upd({authMode:'login',authErrs:{},forgotStep:1,forgotValues:{}})" style="background:none;border:none;cursor:pointer;color:var(--p);font-size:13px;font-weight:600;padding:0">← Terug</button>
+      <span style="font-size:13px;font-weight:700;color:var(--t)">Wachtwoord vergeten</span>
+      <span style="margin-left:auto;font-size:11.5px;color:var(--t3)">${stepLabel}</span>
+    </div>
+    <div style="display:flex;gap:4px;margin-bottom:18px">
+      ${[1,2,3].map(i=>`<div style="flex:1;height:3px;border-radius:2px;background:${step>=i?'var(--p)':'#e2e8f0'}"></div>`).join('')}
+    </div>
+    ${step===1?`
+      <p style="font-size:13px;color:var(--t2);margin-bottom:14px">Geef je gebruikersnaam in. Je leerkracht kan een tijdelijk wachtwoord voor je instellen.</p>
+      ${e.user?`<div style="background:var(--er-b);border:1.5px solid var(--er-br);border-radius:var(--rs);padding:10px 13px;margin-bottom:12px;font-size:13px;color:var(--er);display:flex;align-items:center;gap:8px">${ic('alert',14,'var(--er)')} ${e.user}</div>`:''}
+      <div class="fg"><label class="fl">Gebruikersnaam</label>
+        <input class="fi${e.user?' err':''}" id="fw-user" placeholder="jouwgebruikersnaam" autocomplete="username" value="${esc(fv.user||'')}">
+      </div>
+      <button class="btn-full btn-pp" onclick="doForgotStep1()">Volgende →</button>`
+    :step===2?`
+      <p style="font-size:13px;color:var(--t2);margin-bottom:14px">Geef het <strong>tijdelijk wachtwoord</strong> in dat je leerkracht voor jou heeft ingesteld.</p>
+      ${e.tmp?`<div style="background:var(--er-b);border:1.5px solid var(--er-br);border-radius:var(--rs);padding:10px 13px;margin-bottom:12px;font-size:13px;color:var(--er);display:flex;align-items:center;gap:8px">${ic('alert',14,'var(--er)')} ${e.tmp}</div>`:''}
+      <div class="fg"><label class="fl">Tijdelijk wachtwoord</label>
+        <input class="fi${e.tmp?' err':''}" id="fw-tmp" type="password" placeholder="Tijdelijk wachtwoord van leerkracht">
+      </div>
+      <button class="btn-full btn-pp" onclick="doForgotStep2()">Volgende →</button>`
+    :`
+      <p style="font-size:13px;color:var(--t2);margin-bottom:14px">Kies een <strong>nieuw wachtwoord</strong> voor je account.</p>
+      ${e.pw?`<div style="background:var(--er-b);border:1.5px solid var(--er-br);border-radius:var(--rs);padding:10px 13px;margin-bottom:12px;font-size:13px;color:var(--er);display:flex;align-items:center;gap:8px">${ic('alert',14,'var(--er)')} ${e.pw}</div>`:''}
+      <div class="fg"><label class="fl">Nieuw wachtwoord</label>
+        <input class="fi${e.pw?' err':''}" id="fw-pw1" type="password" placeholder="Min. 8 tekens + hoofdletter + cijfer">
+      </div>
+      <div class="fg"><label class="fl">Bevestig wachtwoord</label>
+        <input class="fi${e.pw?' err':''}" id="fw-pw2" type="password" placeholder="Herhaal nieuw wachtwoord" onkeydown="if(event.key==='Enter')doForgotStep3()">
+      </div>
+      <button class="btn-full btn-pp" onclick="doForgotStep3()">Wachtwoord opslaan</button>`}
+  </div>`;
+}
+
+function doForgotStep1(){
+  const usr=document.getElementById('fw-user')?.value.trim().toLowerCase()||'';
+  if(!usr){upd({authErrs:{user:'Vul je gebruikersnaam in.'}});return;}
+  const u=Object.values(ACCOUNTS).find(a=>a.username===usr);
+  if(!u||u.role==='teacher'){upd({authErrs:{user:`Gebruikersnaam "${usr}" is niet gevonden.`}});return;}
+  if(!TEMP_PASSWORDS[u.id]){upd({authErrs:{user:'Geen tijdelijk wachtwoord beschikbaar. Vraag je leerkracht om er één in te stellen.'}});return;}
+  upd({forgotStep:2,forgotValues:{user:usr,userId:u.id},authErrs:{}});
+}
+
+function doForgotStep2(){
+  const tmp=document.getElementById('fw-tmp')?.value||'';
+  const userId=S.forgotValues?.userId;
+  if(!tmp){upd({authErrs:{tmp:'Vul het tijdelijk wachtwoord in.'}});return;}
+  if(TEMP_PASSWORDS[userId]!==tmp){upd({authErrs:{tmp:'Tijdelijk wachtwoord is niet correct. Controleer bij je leerkracht.'}});return;}
+  upd({forgotStep:3,authErrs:{}});
+}
+
+function doForgotStep3(){
+  const pw1=document.getElementById('fw-pw1')?.value||'';
+  const pw2=document.getElementById('fw-pw2')?.value||'';
+  if(pw1.length<8){upd({authErrs:{pw:'Min. 8 tekens vereist.'}});return;}
+  if(!/[A-Z]/.test(pw1)){upd({authErrs:{pw:'Min. één hoofdletter vereist.'}});return;}
+  if(!/[0-9]/.test(pw1)){upd({authErrs:{pw:'Min. één cijfer vereist.'}});return;}
+  if(pw1!==pw2){upd({authErrs:{pw:'Wachtwoorden komen niet overeen.'}});return;}
+  const userId=S.forgotValues?.userId;
+  PASSWORDS[userId]=pw1;
+  delete TEMP_PASSWORDS[userId];
+  saveToLS();
+  showToast('Wachtwoord succesvol gewijzigd! Je kunt nu aanmelden.','ok');
+  upd({authMode:'login',forgotStep:1,forgotValues:{},authErrs:{}});
 }
 function loginF(){const e=S.authErrs;return`
   ${e.general?`<div style="background:var(--er-b);border:1.5px solid var(--er-br);border-radius:var(--rs);padding:10px 13px;margin-bottom:12px;font-size:13px;color:var(--er);display:flex;align-items:center;gap:8px;font-weight:600">${ic('alert',15,'var(--er)')} ${e.general}</div>`:''}
@@ -440,7 +597,7 @@ function loginF(){const e=S.authErrs;return`
     ${e.pw?`<div style="font-size:12px;color:var(--er);margin-top:4px;display:flex;align-items:center;gap:4px">${ic('alert',12,'var(--er)')} ${e.pw}</div>`:''}
   </div>
   <button class="btn-full btn-pp" onclick="doLogin()">Aanmelden →</button>
-  <p style="text-align:center;font-size:11.5px;color:var(--t3);margin-top:9px;cursor:pointer" onclick="showToast('Contacteer de beheerder voor wachtwoordherstel','info')">Wachtwoord vergeten?</p>`;}function regF(){
+  <p style="text-align:center;font-size:11.5px;color:var(--p);margin-top:9px;cursor:pointer;font-weight:600" onclick="upd({authMode:'forgot',forgotStep:1,authErrs:{}})">Wachtwoord vergeten?</p>`;}function regF(){
   const e=S.authErrs;
   const v=S.authFormValues||{}; // bewaarde waarden bij fout
   return`
@@ -508,12 +665,13 @@ function doRegister(){
   if(S.authRole==='teacher'){
     const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const suf=Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
-    const lastName=(achternaam||achternaam||'SCHOOL').toUpperCase().replace(/[^A-Z]/g,'');
+    const lastName=(achternaam||'SCHOOL').toUpperCase().replace(/[^A-Z]/g,'');
     const newCode=(lastName||'SCHOOL')+'-'+suf;
     ACCOUNTS.teacher.name=volledigenaam||usr;
     ACCOUNTS.teacher.username=usr;
     ACCOUNTS.teacher.email=$('r-em')?.value.trim()||'';
     ACCOUNTS.teacher.code=newCode;
+    PASSWORDS[ACCOUNTS.teacher.id]=pw;
     showToast('Account aangemaakt!','ok');S.authFormValues={};loginAs('teacher');
   } else {
     // Voeg leerling toe als nieuwe (pending) leerling
@@ -521,6 +679,7 @@ function doRegister(){
     const newId='s-'+Date.now();
     const color=kleur[Math.floor(Math.random()*kleur.length)];
     ACCOUNTS[newId]={id:newId,name:volledigenaam||usr,username:usr,role:'student',classId:null,color};
+    PASSWORDS[newId]=pw;
     T_PENDING.push({id:newId,name:volledigenaam||usr,color,when:'Zojuist'});
     showToast('Account aangemaakt! Je leerkracht wijst je toe aan een klas.','ok');
     // Log in als deze nieuwe leerling
@@ -529,18 +688,30 @@ function doRegister(){
 }
 function loginAs(id){
   const user=ACCOUNTS[id];if(!user)return;
-  if(user.role==='teacher')upd({user,screen:'teacher',tTab:'dashboard',authErrs:{}});
-  else upd({user,screen:'dash',authErrs:{},currentPad:null});
+  if(user.role==='teacher'){
+    Object.assign(S,{user,screen:'teacher',tTab:'dashboard',authErrs:{}});
+  } else {
+    Object.assign(S,{user,screen:'dash',authErrs:{},currentPad:null});
+  }
+  saveToLS();saveSession();render();
+}
+function logout(){
+  S.user=null;S.screen='auth';
+  saveSession(); // wis sessie uit localStorage
+  render();
 }
 function doLogin(){
   const usr=$('l-user')?.value.trim().toLowerCase()||'';
   const pw=$('l-pw')?.value||'';
-  const errs={};
-  if(!usr){errs.user='Vul je gebruikersnaam in.';upd({authErrs:errs});return;}
-  if(!pw){errs.pw='Vul je wachtwoord in.';upd({authErrs:errs});return;}
+  if(!usr){upd({authErrs:{user:'Vul je gebruikersnaam in.'}});return;}
+  if(!pw){upd({authErrs:{pw:'Vul je wachtwoord in.'}});return;}
   const u=Object.values(ACCOUNTS).find(a=>a.username===usr);
   if(!u){upd({authErrs:{user:`Gebruikersnaam "${usr}" is niet gekend.`}});return;}
-  // Demo: elk wachtwoord wordt aanvaard — in productie: hash vergelijken
+  // Wachtwoordcontrole: als er een wachtwoord opgeslagen is, controleer het
+  const stored=PASSWORDS[u.id];
+  if(stored&&stored!==pw){
+    upd({authErrs:{pw:'Wachtwoord is niet correct.'}});return;
+  }
   loginAs(u.id);
 }
 
@@ -561,7 +732,7 @@ function teacherHTML(){
       <div class="sb-foot"><div class="sb-user">
         ${av(S.user.name,S.user.color,28)}
         <div><div style="font-size:12px;font-weight:600;color:#e2e8f0">${S.user.name}</div><div style="font-size:10.5px;color:#64748b">Leerkracht</div></div>
-        <button class="sb-logout" onclick="upd({screen:'auth',user:null})" title="Uitloggen">${ic('logout',14,'#64748b')}</button>
+        <button class="sb-logout" onclick="logout()" title="Uitloggen">${ic('logout',14,'#64748b')}</button>
       </div></div>
     </div>
     <div class="t-main">
@@ -968,8 +1139,11 @@ function toggleReportFolder(id){if(!S.reportFolderExp)S.reportFolderExp=new Set(
 function tSettings(){
   const nameParts=S.user.name.trim().split(' ');
   const voornaam=nameParts[0]||'';const achternaam=nameParts.slice(1).join(' ')||'';
-  return`<div style="max-width:600px">
-    <div class="card cp" style="margin-bottom:13px">
+  const q=(S.settingsPwSearch||'').toLowerCase();
+  const filtered=q?T_STUDENTS.filter(s=>s.name.toLowerCase().includes(q)||ACCOUNTS[s.id]?.username?.toLowerCase().includes(q)):T_STUDENTS;
+  return`<div style="max-width:680px;display:flex;flex-direction:column;gap:14px">
+    <!-- Profiel -->
+    <div class="card cp">
       <div class="ct">${ic('user',13)} Profiel</div>
       <div class="form2">
         <div class="fg"><label class="fl">Voornaam</label><input class="fi" id="set-nm" value="${esc(voornaam)}"></div>
@@ -978,13 +1152,67 @@ function tSettings(){
       <div class="fg" style="margin-bottom:11px"><label class="fl">E-mailadres</label><input class="fi" id="set-em" value="${esc(S.user.email||'')}"></div>
       <button class="btn bp bsm" onclick="saveProfile()">Opslaan</button>
     </div>
+
+    <!-- Leerkrachtcode -->
     <div class="card cp">
       <div class="ct">${ic('key',13)} Leerkrachtcode</div>
       <p style="font-size:13px;color:var(--t2);margin-bottom:11px">Nieuwe leerlingen registreren via deze code. Bestaande leerlingen blijven altijd verbonden — ook als je de code wijzigt.</p>
       <div class="code-disp" style="margin-bottom:11px">${S.user.code}<button class="btn bg_ bsm" onclick="navigator.clipboard?.writeText('${S.user.code}');showToast('Gekopieerd!','info')" style="color:#94a3b8">${ic('copy',11,'#94a3b8')}</button></div>
       <button class="btn bs bsm" onclick="regenCode()">${ic('refresh',12)} Nieuwe code genereren</button>
     </div>
+
+    <!-- Wachtwoord leerlingen resetten -->
+    <div class="card cp">
+      <div class="ct">${ic('lock',13)} Tijdelijk wachtwoord instellen voor leerlingen</div>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:12px">Zoek een leerling op en stel een tijdelijk wachtwoord in. De leerling gebruikt dit om een nieuw wachtwoord te kiezen via "Wachtwoord vergeten?".</p>
+      <div class="fg">
+        <input class="fi" placeholder="Zoek op naam of gebruikersnaam..." value="${esc(S.settingsPwSearch||'')}"
+          oninput="S.settingsPwSearch=this.value;const el=document.getElementById('pw-student-list');if(el){const q=this.value.toLowerCase();const students=T_STUDENTS.filter(s=>s.name.toLowerCase().includes(q)||(ACCOUNTS[s.id]?.username||'').toLowerCase().includes(q));el.innerHTML=students.length?students.map(s=>pwStudentRow(s)).join(''):'<div class=\'empty-s\' style=\'padding:12px\'>Geen leerlingen gevonden.</div>';}" style="margin-bottom:0">
+      </div>
+      <div id="pw-student-list" style="max-height:320px;overflow-y:auto;margin-top:8px;border:1px solid var(--bdr);border-radius:var(--rs)">
+        ${T_STUDENTS.length===0
+          ?`<div class="empty-s" style="padding:20px">Nog geen leerlingen. Leerlingen verschijnen hier na registratie.</div>`
+          :filtered.map(s=>pwStudentRow(s)).join('')}
+      </div>
+    </div>
   </div>`;
+}
+
+function pwStudentRow(s){
+  const username=ACCOUNTS[s.id]?.username||'—';
+  const hasTmp=!!TEMP_PASSWORDS[s.id];
+  return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #f1f5f9">
+    ${av(s.name,s.color,30)}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:700;color:var(--t)">${s.name}</div>
+      <div style="font-size:11.5px;color:var(--t3)">${username}${s.classId?` · ${CLASSES[s.classId]?.name||''}`:''}</div>
+      ${hasTmp?`<div style="font-size:11px;color:var(--ok);margin-top:2px">✓ Tijdelijk wachtwoord ingesteld</div>`:''}
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <input id="tmp-pw-${s.id}" type="text" placeholder="Tijdelijk wachtwoord" value="${esc(TEMP_PASSWORDS[s.id]||'')}"
+        style="border:1.5px solid var(--bdr);border-radius:var(--rs);padding:6px 10px;font-size:13px;font-family:inherit;width:175px;outline:none"
+        onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--bdr)'"
+        onkeydown="if(event.key==='Enter')saveTmpPw('${s.id}')">
+      <button class="btn bp bxs" onclick="saveTmpPw('${s.id}')">Instellen</button>
+      ${hasTmp?`<button class="btn bs bxs" onclick="clearTmpPw('${s.id}')" title="Verwijder tijdelijk wachtwoord">${ic('x',11)}</button>`:''}
+    </div>
+  </div>`;
+}
+
+function saveTmpPw(sid){
+  const val=document.getElementById('tmp-pw-'+sid)?.value.trim();
+  if(!val){showToast('Vul een tijdelijk wachtwoord in','info');return;}
+  TEMP_PASSWORDS[sid]=val;
+  saveToLS();
+  upd({});
+  showToast(`Tijdelijk wachtwoord ingesteld voor ${ACCOUNTS[sid]?.name?.split(' ')[0]||'leerling'}`,'ok');
+}
+
+function clearTmpPw(sid){
+  delete TEMP_PASSWORDS[sid];
+  saveToLS();
+  upd({});
+  showToast('Tijdelijk wachtwoord verwijderd','info');
 }
 function saveProfile(){
   const nm=document.getElementById('set-nm')?.value.trim()||'';
@@ -1302,7 +1530,7 @@ function studentDashHTML(){
       <div style="display:flex;align-items:center;gap:8px">
         ${cls?`<span class="cls-badge" style="background:${cls.color}15;color:${cls.color};border:1px solid ${cls.color}25">${cls.name}</span>`:''}
         ${av(u.name,u.color,26)}<span style="font-size:12.5px;color:var(--t2);font-weight:500">${u.name}</span>
-        <button class="btn bs bsm" onclick="upd({screen:'auth',user:null})">Uitloggen</button>
+        <button class="btn bs bsm" onclick="logout()">Uitloggen</button>
       </div>
     </div>
     <div class="dash-body">
@@ -1988,7 +2216,12 @@ function doResetPw(idOrClassId,isBulk){
 let _tt=null;
 function showToast(msg,type='info'){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className=`toast t${type==='ok'?'ok':type==='info'?'in':'er'}`;if(_tt)clearTimeout(_tt);_tt=setTimeout(()=>t.classList.add('hide'),2800);}
 
-function init(){if(!window.katex){setTimeout(init,100);return;}render();}
+function init(){
+  if(!window.katex){setTimeout(init,100);return;}
+  loadFromLS();   // herstel alle data (accounts, klassen, leerlingen, pads...)
+  loadSession();  // herstel ingelogde gebruiker en scherm
+  render();
+}
 init();
 </script>
 </body>
