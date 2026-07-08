@@ -428,27 +428,72 @@ function authHTML(){
   </div></div>`;
 }
 function loginF(){const e=S.authErrs;return`
-  ${e.general?`<div style="border-radius:var(--rs);margin-bottom:10px;padding:9px 12px;background:var(--er-b);border:1px solid var(--er-br);color:var(--er);font-size:13px">${e.general}</div>`:''}
-  <div class="fg"><label class="fl">Gebruikersnaam</label><input class="fi${e.user?' err':''}" id="l-user" type="text" placeholder="jouwgebruikersnaam" autocomplete="username"><div class="ferr">${e.user||''}</div></div>
-  <div class="fg"><label class="fl">Wachtwoord</label><input class="fi${e.pw?' err':''}" id="l-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"><div class="ferr">${e.pw||''}</div></div>
+  ${e.general?`<div style="background:var(--er-b);border:1.5px solid var(--er-br);border-radius:var(--rs);padding:10px 13px;margin-bottom:12px;font-size:13px;color:var(--er);display:flex;align-items:center;gap:8px;font-weight:600">${ic('alert',15,'var(--er)')} ${e.general}</div>`:''}
+  <div class="fg">
+    <label class="fl">Gebruikersnaam</label>
+    <input class="fi${e.user?' err':''}" id="l-user" type="text" placeholder="jouwgebruikersnaam" autocomplete="username">
+    ${e.user?`<div style="font-size:12px;color:var(--er);margin-top:4px;display:flex;align-items:center;gap:4px">${ic('alert',12,'var(--er)')} ${e.user}</div>`:''}
+  </div>
+  <div class="fg">
+    <label class="fl">Wachtwoord</label>
+    <input class="fi${e.pw?' err':''}" id="l-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    ${e.pw?`<div style="font-size:12px;color:var(--er);margin-top:4px;display:flex;align-items:center;gap:4px">${ic('alert',12,'var(--er)')} ${e.pw}</div>`:''}
+  </div>
   <button class="btn-full btn-pp" onclick="doLogin()">Aanmelden →</button>
-  <p style="text-align:center;font-size:11.5px;color:var(--t3);margin-top:9px;cursor:pointer" onclick="showToast('Contacteer de beheerder voor wachtwoordherstel (demo)','info')">Wachtwoord vergeten?</p>`;}
-function regF(){const e=S.authErrs;return`
+  <p style="text-align:center;font-size:11.5px;color:var(--t3);margin-top:9px;cursor:pointer" onclick="showToast('Contacteer de beheerder voor wachtwoordherstel','info')">Wachtwoord vergeten?</p>`;}function regF(){
+  const e=S.authErrs;
+  const v=S.authFormValues||{}; // bewaarde waarden bij fout
+  return`
   <div class="fg"><label class="fl">Ik ben</label>
-    <div class="role-grid"><button class="role-btn${S.authRole==='student'?' on':''}" onclick="upd({authRole:'student'})">🎒 Leerling</button><button class="role-btn${S.authRole==='teacher'?' on':''}" onclick="upd({authRole:'teacher'})">👩&#8205;🏫 Leerkracht</button></div>
+    <div class="role-grid"><button class="role-btn${S.authRole==='student'?' on':''}" onclick="upd({authRole:'student'})">🎒 Leerling</button><button class="role-btn${S.authRole==='teacher'?' on':''}" onclick="upd({authRole:'teacher'})">👩‍🏫 Leerkracht</button></div>
   </div>
   <div class="form2">
-    <div class="fg"><label class="fl">Voornaam</label><input class="fi${e.naam?' err':''}" id="r-nm" placeholder="Jan"><div class="ferr">${e.naam||''}</div></div>
-    <div class="fg"><label class="fl">Achternaam</label><input class="fi" id="r-anm" placeholder="Janssen"></div>
+    <div class="fg">
+      <label class="fl">Voornaam</label>
+      <input class="fi${e.naam?' err':''}" id="r-nm" placeholder="Jan" value="${esc(v.nm||'')}">
+      ${e.naam?`<div style="font-size:12px;color:var(--er);margin-top:4px;display:flex;align-items:center;gap:4px">${ic('alert',12,'var(--er)')} ${e.naam}</div>`:''}
+    </div>
+    <div class="fg"><label class="fl">Achternaam</label><input class="fi" id="r-anm" placeholder="Janssen" value="${esc(v.anm||'')}"></div>
   </div>
-  <div class="fg"><label class="fl">Gebruikersnaam</label><input class="fi${e.user?' err':''}" id="r-user" type="text" placeholder="jouwgebruikersnaam" autocomplete="username"><div class="ferr">${e.user||''}</div></div>
-  ${S.authRole==='teacher'?`<div class="fg"><label class="fl">E-mailadres</label><input class="fi${e.email?' err':''}" id="r-em" type="email" placeholder="naam@school.be"><div class="ferr">${e.email||''}</div></div>`:''}
-  <div class="fg"><label class="fl">Wachtwoord</label><input class="fi${e.pw?' err':''}" id="r-pw" type="password" placeholder="Min. 8 tekens + hoofdletter + cijfer"><div class="ferr">${e.pw||''}</div></div>
-  ${S.authRole==='student'?`<div class="fg"><label class="fl">Leerkrachtcode</label><input class="fi${e.code?' err':''}" id="r-code" placeholder="Bv. MARTENS-7F2K" style="font-family:monospace;letter-spacing:2px;text-transform:uppercase"><div class="ferr">${e.code||''}</div><div class="info-note">ℹ️ Vraag de code aan je leerkracht. Je verschijnt dan in hun dashboard.</div></div>`:''}
+  <div class="fg">
+    <label class="fl">Gebruikersnaam</label>
+    <input class="fi${e.user?' err':''}" id="r-user" type="text" placeholder="jouwgebruikersnaam" autocomplete="username" value="${esc(v.user||'')}">
+    ${e.user?`<div style="font-size:12px;color:var(--er);margin-top:4px;display:flex;align-items:center;gap:4px">${ic('alert',12,'var(--er)')} ${e.user}</div>`:''}
+  </div>
+  ${S.authRole==='teacher'?`<div class="fg">
+    <label class="fl">E-mailadres</label>
+    <input class="fi${e.email?' err':''}" id="r-em" type="email" placeholder="naam@school.be" value="${esc(v.em||'')}">
+    ${e.email?`<div style="font-size:12px;color:var(--er);margin-top:4px;display:flex;align-items:center;gap:4px">${ic('alert',12,'var(--er)')} ${e.email}</div>`:''}
+  </div>`:''}
+  <div class="fg">
+    <label class="fl">Wachtwoord</label>
+    <input class="fi${e.pw?' err':''}" id="r-pw" type="password" placeholder="Min. 8 tekens + hoofdletter + cijfer">
+    ${e.pw?`<div style="font-size:12px;color:var(--er);margin-top:4px;display:flex;align-items:center;gap:4px">${ic('alert',12,'var(--er)')} ${e.pw}</div>`:''}
+  </div>
+  ${S.authRole==='student'?`<div class="fg"><label class="fl">Leerkrachtcode</label>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <input id="r-code-naam" maxlength="20" placeholder="NAAM" autocomplete="off"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z]/g,'')"
+        style="flex:1;border:1.5px solid ${e.code?'var(--er)':'var(--bdr)'};border-radius:var(--rs);padding:8px 12px;font-size:15px;font-family:monospace;font-weight:700;letter-spacing:2px;text-transform:uppercase;outline:none;transition:border .12s;background:var(--w);color:var(--t)"
+        onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='${e.code?'var(--er)':'var(--bdr)'}'">
+      <span style="font-size:20px;font-weight:800;color:var(--t2);flex-shrink:0">-</span>
+      <input id="r-code-suf" maxlength="4" placeholder="XXXX" autocomplete="off"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(this.value.length===4)document.getElementById('r-pw')?.focus()"
+        style="width:90px;border:1.5px solid ${e.code?'var(--er)':'var(--bdr)'};border-radius:var(--rs);padding:8px 12px;font-size:15px;font-family:monospace;font-weight:700;letter-spacing:3px;text-transform:uppercase;outline:none;transition:border .12s;background:var(--w);color:var(--p);text-align:center"
+        onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='${e.code?'var(--er)':'var(--bdr)'}'">
+    </div>
+    ${e.code?`<div style="font-size:12px;color:var(--er);margin-bottom:4px;display:flex;align-items:center;gap:4px">${ic('alert',12,'var(--er)')} ${e.code}</div>`:''}
+    <div class="info-note">ℹ️ Vraag de code aan je leerkracht.</div>
+  </div>`:''}
   <button class="btn-full btn-pp" onclick="doRegister()">Account aanmaken →</button>`;}
 function doRegister(){
   const nm=$('r-nm')?.value.trim()||'';const usr=$('r-user')?.value.trim().toLowerCase()||'';
-  const pw=$('r-pw')?.value||'';const code=$('r-code')?.value.trim().toUpperCase()||'';
+  const pw=$('r-pw')?.value||'';
+  const codeNaam=($('r-code-naam')?.value||'').trim().toUpperCase();
+  const codeSuf=($('r-code-suf')?.value||'').trim().toUpperCase();
+  const code=codeNaam&&codeSuf?codeNaam+'-'+codeSuf:'';
+  // Sla waarden op zodat het formulier ze behoudt bij een fout
+  S.authFormValues={nm,anm:$('r-anm')?.value.trim()||'',user:usr,em:$('r-em')?.value.trim()||'',code};
   const errs={};
   if(!nm)errs.naam='Vul je voornaam in.';
   if(!usr)errs.user='Gebruikersnaam is verplicht.';
@@ -456,16 +501,20 @@ function doRegister(){
   if(S.authRole==='teacher'){const em=$('r-em')?.value.trim()||'';if(!em||!em.includes('@'))errs.email='Geldig e-mailadres vereist.';}
   if(pw.length<8)errs.pw='Min. 8 tekens.';else if(!/[A-Z]/.test(pw))errs.pw='Min. één hoofdletter.';else if(!/[0-9]/.test(pw))errs.pw='Min. één cijfer.';
   if(S.authRole==='student'&&!code)errs.code='Leerkrachtcode is verplicht.';
-  else if(S.authRole==='student'&&code&&code!=='MARTENS-7F2K')errs.code='Ongeldige leerkrachtcode.';
+  else if(S.authRole==='student'&&code&&!/^[A-Z]+-[A-Z0-9]{4}$/.test(code))errs.code='Ongeldige code. Verwacht formaat: NAAM-XXXX';
   if(Object.keys(errs).length){upd({authErrs:errs});return;}
   const voornaam=nm;const achternaam=$('r-anm')?.value.trim()||'';
   const volledigenaam=(voornaam+' '+achternaam).trim();
   if(S.authRole==='teacher'){
-    // Werk het leerkrachtaccount bij met de ingetypte gegevens
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const suf=Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+    const lastName=(achternaam||achternaam||'SCHOOL').toUpperCase().replace(/[^A-Z]/g,'');
+    const newCode=(lastName||'SCHOOL')+'-'+suf;
     ACCOUNTS.teacher.name=volledigenaam||usr;
     ACCOUNTS.teacher.username=usr;
     ACCOUNTS.teacher.email=$('r-em')?.value.trim()||'';
-    showToast('Account aangemaakt!','ok');loginAs('teacher');
+    ACCOUNTS.teacher.code=newCode;
+    showToast('Account aangemaakt!','ok');S.authFormValues={};loginAs('teacher');
   } else {
     // Voeg leerling toe als nieuwe (pending) leerling
     const kleur=['#4f46e5','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#e11d48','#14b8a6','#ec4899'];
@@ -482,6 +531,17 @@ function loginAs(id){
   const user=ACCOUNTS[id];if(!user)return;
   if(user.role==='teacher')upd({user,screen:'teacher',tTab:'dashboard',authErrs:{}});
   else upd({user,screen:'dash',authErrs:{},currentPad:null});
+}
+function doLogin(){
+  const usr=$('l-user')?.value.trim().toLowerCase()||'';
+  const pw=$('l-pw')?.value||'';
+  const errs={};
+  if(!usr){errs.user='Vul je gebruikersnaam in.';upd({authErrs:errs});return;}
+  if(!pw){errs.pw='Vul je wachtwoord in.';upd({authErrs:errs});return;}
+  const u=Object.values(ACCOUNTS).find(a=>a.username===usr);
+  if(!u){upd({authErrs:{user:`Gebruikersnaam "${usr}" is niet gekend.`}});return;}
+  // Demo: elk wachtwoord wordt aanvaard — in productie: hash vergelijken
+  loginAs(u.id);
 }
 
 function teacherHTML(){
@@ -940,7 +1000,11 @@ function saveProfile(){
 function regenCode(){
   const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const suf=Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
-  S.user.code='MARTENS-'+suf;
+  const nameParts=S.user.name.trim().split(' ');
+  const lastName=(nameParts[nameParts.length-1]||'SCHOOL').toUpperCase().replace(/[^A-Z]/g,'');
+  const newCode=(lastName||'SCHOOL')+'-'+suf;
+  S.user.code=newCode;
+  if(ACCOUNTS.teacher&&S.user.role==='teacher') ACCOUNTS.teacher.code=newCode;
   upd({});
   showToast('Nieuwe code aangemaakt. Bestaande leerlingen blijven verbonden.','ok');
 }
@@ -1105,8 +1169,8 @@ function removePair(id,idx){const blocks=getEditBlocks().map(b=>{if(b.id!==id)re
 function renderEdBlock(block){
   const m=BM[block.type]||BM.THEORY;const c=block.content||{};const isSel=S.studioSelBlock===block.id;
   let preview='';
-  if(block.type==='THEORY')preview=`<div class="blk-prev">${LX.text(c.text||'')}</div>`;
-  else if(block.type==='EXAMPLE')preview=`<div class="blk-prev">${LX.text(c.problem||'')}</div>`;
+  if(block.type==='THEORY')preview=`<div class="blk-prev">${LX.text(c.text||'')}${imgDisplay(c.images)}</div>`;
+  else if(block.type==='EXAMPLE')preview=`<div class="blk-prev">${LX.text(c.problem||'')}${imgDisplay(c.images)}</div>`;
   else if(block.type==='FILL_IN')preview=`<div class="blk-prev">${LX.text(c.q||'')}<div style="margin-top:8px;display:flex;align-items:center;gap:6px">${c.prefix?`<span style="font-family:monospace;font-weight:700;font-size:13px">${c.prefix}</span>`:''}<div style="border:1.5px dashed #94a3b8;border-radius:5px;padding:4px 12px;font-size:12px;color:#94a3b8">Antwoord...</div></div></div>`;
   else if(block.type==='MULTIPLE_CHOICE')preview=`<div class="blk-prev">${LX.text(c.q||'')}<div style="margin-top:8px">${(c.opts||[]).map((o,i)=>`<div style="padding:5px 10px;border:1.5px solid ${i===c.ci?'var(--ok)':'var(--bdr)'};border-radius:6px;font-size:12.5px;background:${i===c.ci?'var(--ok-b)':'rgba(255,255,255,.6)'};color:${i===c.ci?'var(--ok)':'var(--t2)'};margin-bottom:4px;display:flex;align-items:center;gap:6px"><span style="font-size:10px;font-weight:700;min-width:14px">${['A','B','C','D'][i]}.</span>${LX.text(o)}</div>`).join('')}</div></div>`;
   else if(block.type==='MATCHING')preview=`<div class="blk-prev">${LX.text(c.q||'')}<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px">${(c.pairs||[]).map(p=>`<div style="display:contents"><div style="padding:5px 9px;border:1px solid var(--bdr);border-radius:5px;font-size:12.5px;background:rgba(255,255,255,.6)">${LX.text(p.l)}</div><div style="padding:5px 9px;border:1px solid var(--bdr);border-radius:5px;font-size:12.5px;background:rgba(255,255,255,.6)">${LX.text(p.r)}</div></div>`).join('')}</div></div>`;
@@ -1127,10 +1191,64 @@ function renderEdBlock(block){
   </div>`;
 }
 
+// ── AFBEELDINGEN IN BLOKKEN ──
+function imgEditorFields(blockId, c){
+  const imgs=c.images||[];
+  return`<div class="fg">
+    <label class="bfl">Afbeeldingen <span style="font-weight:400;text-transform:none;color:var(--t3)">(png, jpg)</span></label>
+    ${imgs.length?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      ${imgs.map(img=>`<div style="position:relative;display:inline-block">
+        <img src="${img.data}" style="max-width:180px;max-height:130px;border-radius:7px;border:1.5px solid var(--bdr);display:block;object-fit:cover">
+        <button onclick="removeBlockImg('${blockId}','${img.id}')" style="position:absolute;top:-7px;right:-7px;background:var(--er);border:none;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:700">×</button>
+      </div>`).join('')}
+    </div>`:''}
+    <button class="btn bs bsm" type="button" onclick="pickBlockImg('${blockId}')" style="border-style:dashed">
+      ${ic('plus',12)} Afbeelding toevoegen
+    </button>
+    <input type="file" id="img-input-${blockId}" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none" onchange="handleBlockImg('${blockId}',this)">
+  </div>`;
+}
+function pickBlockImg(blockId){document.getElementById('img-input-'+blockId)?.click();}
+function handleBlockImg(blockId,input){
+  const file=input.files?.[0];if(!file)return;
+  if(file.size>5*1024*1024){showToast('Afbeelding te groot (max 5MB)','info');return;}
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    const blocks=getEditBlocks().map(b=>{
+      if(b.id!==blockId)return b;
+      const imgs=[...(b.content.images||[]),{id:'img-'+Date.now(),data:ev.target.result}];
+      return{...b,content:{...b.content,images:imgs}};
+    });
+    S.editBlocks=blocks;S.isDirty=true;
+    if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;
+    upd({});showToast('Afbeelding toegevoegd','ok');
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+function removeBlockImg(blockId,imgId){
+  const blocks=getEditBlocks().map(b=>{
+    if(b.id!==blockId)return b;
+    return{...b,content:{...b.content,images:(b.content.images||[]).filter(i=>i.id!==imgId)}};
+  });
+  S.editBlocks=blocks;S.isDirty=true;
+  if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;
+  upd({});
+}
+function imgDisplay(images){
+  if(!images?.length)return'';
+  return`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+    ${images.map(img=>`<img src="${img.data}" style="max-width:100%;max-height:300px;border-radius:8px;border:1px solid var(--bdr);object-fit:contain">`).join('')}
+  </div>`;
+}
+
 function renderEdForm(block){
   const c=block.content||{};let fields='';
-  if(block.type==='THEORY'){fields=`<div class="fg"><label class="bfl">Inhoud <span style="color:var(--t3);font-weight:400;text-transform:none">($inline$ en $$blok$$)</span></label><textarea class="bfi bfta" rows="5" oninput="updateEdContent('${block.id}','text',this.value)">${esc(c.text||'')}</textarea><div class="lx-hint">${ic('eye',11,'var(--t3)')} Live LaTeX-voorbeeld</div><div class="lx-prev-box" id="lxp-${block.id}">${LX.text(c.text||'Typ formules hierboven...')}</div></div>`;}
-  else if(block.type==='EXAMPLE'){fields=`<div class="fg"><label class="bfl">Opgave</label><textarea class="bfi bfta" rows="2" oninput="updateEdContent('${block.id}','problem',this.value)">${esc(c.problem||'')}</textarea><div class="lx-prev-box" id="lxp-${block.id}" style="margin-top:5px">${LX.text(c.problem||'')}</div></div><div class="fg"><label class="bfl">Uitwerking</label><textarea class="bfi bfta" rows="4" oninput="updateEdContent('${block.id}','solution',this.value)">${esc(c.solution||'')}</textarea></div>`;}
+  if(block.type==='THEORY'){fields=`<div class="fg"><label class="bfl">Inhoud <span style="color:var(--t3);font-weight:400;text-transform:none">($inline$ en $$blok$$)</span></label><textarea class="bfi bfta" rows="5" oninput="updateEdContent('${block.id}','text',this.value)">${esc(c.text||'')}</textarea><div class="lx-hint">${ic('eye',11,'var(--t3)')} Live LaTeX-voorbeeld</div><div class="lx-prev-box" id="lxp-${block.id}">${LX.text(c.text||'Typ formules hierboven...')}</div></div>
+    ${imgEditorFields(block.id,c)}`;}
+  else if(block.type==='EXAMPLE'){fields=`<div class="fg"><label class="bfl">Opgave</label><textarea class="bfi bfta" rows="2" oninput="updateEdContent('${block.id}','problem',this.value)">${esc(c.problem||'')}</textarea><div class="lx-prev-box" id="lxp-${block.id}" style="margin-top:5px">${LX.text(c.problem||'')}</div></div><div class="fg"><label class="bfl">Uitwerking</label><textarea class="bfi bfta" rows="4" oninput="updateEdContent('${block.id}','solution',this.value)">${esc(c.solution||'')}</textarea></div>
+    ${imgEditorFields(block.id,c)}`;}
+
   else if(block.type==='FILL_IN'){fields=`<div class="fg"><label class="bfl">Vraag</label><textarea class="bfi bfta" rows="2" oninput="updateEdContent('${block.id}','q',this.value)">${esc(c.q||'')}</textarea><div class="lx-prev-box" id="lxp-${block.id}" style="margin-top:5px">${LX.text(c.q||'')}</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label class="bfl">Prefix</label><input class="bfi" value="${esc(c.prefix||'')}" oninput="updateEdContent('${block.id}','prefix',this.value)" placeholder="bv. x ="></div><div class="fg"><label class="bfl">Correct antwoord</label><input class="bfi" value="${esc(c.ca||'')}" oninput="updateEdContent('${block.id}','ca',this.value)"></div></div><div class="fg"><label class="bfl">Hint</label><input class="bfi" value="${esc(c.hint||'')}" oninput="updateEdContent('${block.id}','hint',this.value)" placeholder="Optionele hint..."></div>`;}
   else if(block.type==='MULTIPLE_CHOICE'){const opts=(c.opts||['','','','']).map((opt,i)=>`<div class="mc-opt-row"><div class="mc-radio${c.ci===i?' ok':''}" onclick="event.stopPropagation();setMCCorrect('${block.id}',${i})">${c.ci===i?ic('check',10,'#fff'):''}</div><input class="bfi" style="flex:1" value="${esc(opt)}" oninput="updateMCOpt('${block.id}',${i},this.value)" placeholder="Optie ${String.fromCharCode(65+i)}"></div>`).join('');fields=`<div class="fg"><label class="bfl">Vraag</label><textarea class="bfi bfta" rows="2" oninput="updateEdContent('${block.id}','q',this.value)">${esc(c.q||'')}</textarea><div class="lx-prev-box" id="lxp-${block.id}" style="margin-top:5px">${LX.text(c.q||'')}</div></div><div class="fg"><label class="bfl">Opties (klik cirkel = correct)</label>${opts}</div><div class="fg"><label class="bfl">Uitleg</label><input class="bfi" value="${esc(c.exp||'')}" oninput="updateEdContent('${block.id}','exp',this.value)" placeholder="Uitleg..."></div>`;}
   else if(block.type==='MATCHING'){const pairs=(c.pairs||[]).map((p,i)=>`<div class="pair-row"><input class="bfi" style="flex:1" value="${esc(p.l||'')}" oninput="updatePair('${block.id}',${i},'l',this.value)" placeholder="Kolom A"><span class="pair-sep">↔</span><input class="bfi" style="flex:1" value="${esc(p.r||'')}" oninput="updatePair('${block.id}',${i},'r',this.value)" placeholder="Kolom B"><button class="remove-pair" onclick="removePair('${block.id}',${i})">×</button></div>`).join('');fields=`<div class="fg"><label class="bfl">Instructie</label><input class="bfi" value="${esc(c.q||'')}" oninput="updateEdContent('${block.id}','q',this.value)"></div><div class="fg"><label class="bfl">Koppels</label>${pairs}<button class="btn bs bsm" style="margin-top:6px" onclick="addPair('${block.id}')">+ Koppel toevoegen</button></div>`;}
@@ -1238,12 +1356,12 @@ function renderStudentBlock(block, readOnly=false){
   const checkIc=done&&!readOnly?`<div style="color:var(--ok);flex-shrink:0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg></div>`:'';
   let inner='';
   if(block.type==='THEORY'){
-    inner=`<div class="cont-box">${LX.text(c.text||'')} </div>`;
+    inner=`<div class="cont-box">${LX.text(c.text||'')}${imgDisplay(c.images)}</div>`;
     if(!readOnly) inner+=done?'<div class="fb-ok" style="margin-top:9px;font-size:13px">✅ Gelezen</div>':`<button class="btn bp bsm" style="margin-top:10px" onclick="sDone('${block.id}')">✓ Begrepen, verder</button>`;
   }
   else if(block.type==='EXAMPLE'){
     const sh=S.sExSt[block.id]||done||readOnly;
-    inner=`<div class="cont-box" style="margin-bottom:9px">${LX.text(c.problem||'')} </div>`;
+    inner=`<div class="cont-box" style="margin-bottom:9px">${LX.text(c.problem||'')}${imgDisplay(c.images)}</div>`;
     if(sh){inner+=`<div style="margin-bottom:9px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ok);margin-bottom:5px">Uitwerking</div><div class="code-box">${LX.text(c.solution||'')} </div></div>`;if(!readOnly)inner+=done?'<div class="fb-ok" style="font-size:13px">✅ Bekeken</div>':`<button class="btn bp bsm" style="background:#059669" onclick="sDone('${block.id}')">✓ Begrepen</button>`;
     }else{inner+=`<button class="btn bs bsm" style="border-color:#a7f3d0" onclick="sShowEx('${block.id}')">💡 Toon uitwerking</button>`;}
   }
