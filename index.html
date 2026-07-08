@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathPad — Interactief wiskundeplatform</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#0f172a;height:100vh;overflow:hidden;font-size:14px;line-height:1.5}
+:root{
+  --p:#4f46e5;--pd:#3730a3;--pl:#eef2ff;--pb:#c7d2fe;
+  --t:#0f172a;--t2:#475569;--t3:#94a3b8;
+  --bdr:#e2e8f0;--bg:#f1f5f9;--bg2:#f8fafc;--w:#fff;
+  --ok:#059669;--ok-b:#ecfdf5;--ok-br:#a7f3d0;
+  --er:#e11d48;--er-b:#fff1f2;--er-br:#fecdd3;
+  --wn:#d97706;--wn-b:#fffbeb;--wn-br:#fde68a;
+  --r:10px;--rs:7px;--sh:0 1px 3px rgba(0,0,0,.07);--sb:#0f172a
+}
+#app{height:100vh;overflow:hidden}
+
+/* ── AUTH ── */
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#eef2ff 0%,#f8f7f4 55%,#faf5ff 100%);padding:20px;overflow-y:auto}
+.auth-card{background:var(--w);border:1px solid var(--bdr);border-radius:16px;padding:34px 38px;width:100%;max-width:448px;box-shadow:0 8px 32px rgba(79,70,229,.07)}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo-ic{width:50px;height:50px;background:linear-gradient(135deg,var(--p),#7c3aed);border-radius:12px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:900;box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.auth-logo h1{font-size:22px;font-weight:900;color:var(--t);letter-spacing:-.5px}
+.auth-logo p{font-size:12px;color:var(--t3);margin-top:2px}
+.tabs-bar{display:flex;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:18px}
+.taab{flex:1;padding:7px;border-radius:6px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .12s;color:var(--t2);background:transparent}
+.taab.on{background:var(--w);color:var(--t);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.role-btn{padding:10px;border:2px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:center;font-size:12.5px;font-weight:600;color:var(--t2);background:var(--w);transition:all .12s}
+.role-btn:hover{border-color:var(--pb)}.role-btn.on{border-color:var(--p);background:var(--pl);color:var(--p)}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);margin-bottom:5px}
+.fi{width:100%;border:1.5px solid var(--bdr);border-radius:var(--rs);padding:8px 12px;font-size:13.5px;font-family:inherit;color:var(--t);background:var(--w);outline:none;transition:all .12s}
+.fi:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.fi.err{border-color:var(--er)}.ferr{font-size:11.5px;color:var(--er);margin-top:3px}
+.form2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-full{width:100%;padding:10px;font-size:14px;font-weight:700;border:none;border-radius:var(--rs);cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit}
+.btn-pp{background:var(--p);color:#fff}.btn-pp:hover{background:var(--pd)}
+.demo-area{margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr)}
+.demo-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);text-align:center;margin-bottom:7px}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.di{border:1px solid var(--bdr);border-radius:var(--rs);padding:8px 10px;background:var(--w);cursor:pointer;transition:all .12s;text-align:left}
+.di:hover{background:var(--pl);border-color:var(--pb)}
+.di.t{border-color:#c7d2fe;background:#f8faff}.di.t:hover{background:var(--pl)}
+.di strong{display:block;font-size:12px;font-weight:700;color:var(--t);margin-bottom:1px}
+.di span{font-size:10.5px;color:var(--t3)}
+.info-note{background:var(--pl);border:1px solid var(--pb);border-radius:var(--rs);padding:9px 12px;font-size:12px;color:#3730a3;margin-top:7px}
+
+/* ── TEACHER LAYOUT ── */
+.t-layout{display:flex;height:100vh;overflow:hidden;background:var(--sb)}
+.sidebar{width:220px;background:var(--sb);display:flex;flex-direction:column;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06);overflow-y:auto}
+.sb-brand{padding:16px 14px 10px;display:flex;align-items:center;gap:9px}
+.sb-ic{width:30px;height:30px;background:var(--p);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:13px;flex-shrink:0}
+.sb-nm{font-weight:800;font-size:14px;color:#f1f5f9;letter-spacing:-.3px}
+.sb-tg{font-size:9px;color:#64748b;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px}
+.sb-sec{padding:2px 14px 4px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#374151;margin-top:6px}
+.nw{padding:0 6px}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;color:#94a3b8;transition:all .1s;border:none;background:none;width:100%;text-align:left;font-family:inherit;margin-bottom:1px;position:relative}
+.ni:hover{color:#e2e8f0;background:rgba(255,255,255,.05)}
+.ni.on{color:#fff;background:var(--p)}
+.ni svg{flex-shrink:0;opacity:.9}
+.ni .nb{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--er);color:#fff;border-radius:10px;min-width:17px;height:17px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;padding:0 3px}
+.sb-foot{margin-top:auto;padding:10px;border-top:1px solid rgba(255,255,255,.06)}
+.sb-user{display:flex;align-items:center;gap:8px}
+.sb-logout{margin-left:auto;background:none;border:none;color:#64748b;cursor:pointer;padding:3px;border-radius:4px;display:flex;align-items:center}
+.sb-logout:hover{color:#e2e8f0}
+.t-main{flex:1;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.topbar{height:48px;background:var(--w);border-bottom:1px solid var(--bdr);padding:0 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-size:15px;font-weight:800;color:var(--t);letter-spacing:-.3px}
+.page-sub{font-size:11.5px;color:var(--t3);margin-top:1px}
+.ca{padding:20px 24px;overflow-y:auto;flex:1}
+
+/* ── STATS ── */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.sc{background:var(--w);border:1px solid var(--bdr);border-radius:var(--r);padding:15px 17px;box-shadow:var(--sh)}
+.sc-ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:7px}
+.sc-n{font-size:22px;font-weight:800;color:var(--t);letter-spacing:-.5px;line-height:1.1}
+.sc-l{font-size:11.5px;color:var(--t2);margin-top:3px;font-weight:500}
+
+/* ── CARDS ── */
+.card{background:var(--w);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh)}
+.cp{padding:16px 18px}
+.ct{font-size:13px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ── TABLE ── */
+.tw{background:var(--w);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 13px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);border-bottom:1px solid var(--bdr);background:var(--bg2)}
+td{padding:10px 13px;border-bottom:1px solid #f1f5f9;vertical-align:middle;font-size:13px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbff}
+
+/* ── PROGRESS ── */
+.pb{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;flex:1}
+.pf{height:100%;border-radius:3px;transition:width .4s ease}
+
+/* ── BTNS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;border:none;cursor:pointer;font-family:inherit;font-weight:600;border-radius:var(--rs);transition:all .12s;white-space:nowrap}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.bp{background:var(--p);color:#fff;padding:7px 15px;font-size:13px}.bp:hover:not(:disabled){background:var(--pd)}
+.bs{background:var(--w);color:var(--t);padding:7px 14px;font-size:13px;border:1px solid var(--bdr)}.bs:hover:not(:disabled){background:var(--bg2)}
+.bg_{background:transparent;color:var(--t2);padding:5px 9px;font-size:12px;border:none}.bg_:hover{background:#f1f5f9;color:var(--t)}
+.bsm{padding:5px 10px;font-size:12px}.bxs{padding:3px 8px;font-size:11.5px}
+.bd{background:#fef2f2;color:var(--er);border:1px solid #fecdd3;padding:4px 10px;font-size:12px}.bd:hover{background:#fee2e2}
+
+/* ── BADGES ── */
+.bdg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11.5px;font-weight:600}
+.bi{background:#eef2ff;color:#4338ca}.bgreen{background:#dcfce7;color:#166534}
+.bamb{background:#fffbeb;color:#92400e}.bsk{background:#f0f9ff;color:#0c4a6e}
+.bsl{background:#f1f5f9;color:#475569}.bvio{background:#f5f3ff;color:#5b21b6}
+.bpnk{background:#fdf2f8;color:#831843}
+
+/* ── AV ── */
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;letter-spacing:-.5px}
+.cls-badge{padding:2px 8px;border-radius:12px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+
+/* ── GRADING ── */
+.grade-layout{display:grid;grid-template-columns:250px 1fr;gap:14px;max-height:calc(100vh - 160px)}
+.grade-list{background:var(--w);border:1px solid var(--bdr);border-radius:var(--r);overflow-y:auto}
+.grade-hdr{padding:9px 13px;border-bottom:1px solid var(--bdr);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)}
+.gi{padding:10px 13px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:9px}
+.gi:hover{background:#fafbff}.gi.on{background:var(--pl)}.gi:last-child{border-bottom:none}
+.grade-panel{background:var(--w);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;overflow-y:auto}
+.ans-box{background:#f8fafc;border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-size:13.5px;line-height:1.7;color:var(--t);font-style:italic}
+.score-inp{width:70px;border:2px solid var(--bdr);border-radius:var(--rs);padding:7px 10px;font-size:17px;font-weight:700;text-align:center;font-family:inherit;outline:none;transition:border .1s}
+.score-inp:focus{border-color:var(--p)}
+.stabs{display:flex;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:14px;width:fit-content}
+.stab{padding:5px 13px;border-radius:6px;border:none;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s;color:var(--t2);background:transparent}
+.stab.on{background:var(--w);color:var(--t);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* ── REPORTS ── */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.bar-lbl{font-size:12px;color:var(--t2);min-width:80px;text-align:right;font-weight:500}
+.bar-track{flex:1;height:20px;background:#f1f5f9;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease;display:flex;align-items:center;padding-left:7px}
+.bar-val{font-size:11px;font-weight:700;color:rgba(255,255,255,.95)}
+
+/* ── LEERSTUDIO ── */
+.studio-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.studio-topbar{height:48px;background:var(--w);border-bottom:1px solid var(--bdr);padding:0 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.studio-body{display:flex;flex:1;overflow:hidden}
+.ed-left{width:240px;border-right:1px solid var(--bdr);background:var(--w);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.ed-left-hdr{padding:9px 10px 5px;display:flex;align-items:center;justify-content:space-between}
+.ed-left-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)}
+.ftree{padding:4px 6px}
+.f-row{display:flex;align-items:center;gap:5px;padding:5px 7px;border-radius:6px;cursor:pointer;font-size:12.5px;color:var(--t2);transition:all .1s;user-select:none;position:relative}
+.f-row:hover{background:#f1f5f9;color:var(--t)}.f-row.on{background:var(--pl);color:var(--p);font-weight:600}
+.f-chev{font-size:9px;transition:transform .12s;flex-shrink:0;color:var(--t3)}.f-chev.open{transform:rotate(90deg)}
+.f-actions{display:none;margin-left:auto;gap:2px}.f-row:hover .f-actions{display:flex}.mp-row:hover .f-actions{display:flex}
+.f-children{padding-left:14px;border-left:1.5px solid #e2e8f0;margin-left:8px;margin-top:2px}
+.mp-row{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:12px;color:var(--t2);transition:all .1s;margin-bottom:1px;justify-content:space-between}
+.mp-row:hover{background:#f1f5f9;color:var(--t)}.mp-row.on{background:var(--pl);color:var(--p);font-weight:600}
+.ed-blk-list{border-top:1px solid var(--bdr);padding:8px 8px}
+.ed-blk-list-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:6px}
+.blk-nav-item{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:var(--rs);cursor:pointer;border:1.5px solid transparent;margin-bottom:3px;background:var(--bg2);transition:all .1s}
+.blk-nav-item:hover{border-color:var(--pb);background:var(--pl)}.blk-nav-item.on{border-color:var(--p);background:var(--pl)}
+.blk-nav-type{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t3)}
+.blk-nav-title{font-size:12px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.add-blk-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--bdr)}
+.add-blk-btn{display:flex;align-items:center;gap:4px;padding:6px 8px;border-radius:var(--rs);border:1px solid var(--bdr);background:var(--w);cursor:pointer;font-size:11px;color:var(--t2);transition:all .1s;font-family:inherit}
+.add-blk-btn:hover{background:var(--pl);border-color:var(--pb);color:var(--p)}
+.ed-center{flex:1;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column}
+.ed-center-toolbar{height:42px;background:var(--w);border-bottom:1px solid var(--bdr);padding:0 18px;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:5px;border:1px solid var(--bdr);background:var(--w);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;transition:all .1s;font-family:inherit}
+.chip:hover{background:var(--pl);border-color:var(--pb);color:var(--p)}
+.ed-body{padding:20px 24px;max-width:720px;width:100%;margin:0 auto;flex:1}
+.pad-title-inp{font-size:22px;font-weight:900;color:var(--t);background:transparent;border:none;outline:none;width:100%;padding:4px 0;letter-spacing:-.5px;border-bottom:2px solid transparent;transition:border .15s;margin-bottom:4px}
+.pad-title-inp:focus{border-bottom-color:var(--p)}
+.pad-meta-row{font-size:12px;color:var(--t3);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.blk{border-radius:var(--r);border:2px solid;padding:18px;margin-bottom:12px;cursor:pointer;transition:all .15s}
+.blk:hover{box-shadow:0 3px 12px rgba(0,0,0,.08)}.blk.selected{box-shadow:0 0 0 3px rgba(79,70,229,.2)}
+.btype-THEORY{background:#eef2ff;border-color:#c7d2fe}.btype-THEORY.selected{border-color:#6366f1}
+.btype-EXAMPLE{background:#ecfdf5;border-color:#a7f3d0}.btype-EXAMPLE.selected{border-color:#10b981}
+.btype-FILL_IN{background:#fffbeb;border-color:#fde68a}.btype-FILL_IN.selected{border-color:#f59e0b}
+.btype-MULTIPLE_CHOICE{background:#f5f3ff;border-color:#ddd6fe}.btype-MULTIPLE_CHOICE.selected{border-color:#8b5cf6}
+.btype-MATCHING{background:#f0f9ff;border-color:#bae6fd}.btype-MATCHING.selected{border-color:#0ea5e9}
+.btype-OPEN{background:#fff1f2;border-color:#fecdd3}.btype-OPEN.selected{border-color:#e11d48}
+.blk-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.blk-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px}
+.lbl-THEORY{color:#4338ca}.lbl-EXAMPLE{color:#065f46}.lbl-FILL_IN{color:#92400e}
+.lbl-MULTIPLE_CHOICE{color:#5b21b6}.lbl-MATCHING{color:#075985}.lbl-OPEN{color:#9f1239}
+.blk-title{font-size:14px;font-weight:700;color:var(--t);flex:1;min-width:0}
+.blk-actions{display:flex;gap:3px;opacity:0;transition:opacity .1s}
+.blk:hover .blk-actions,.blk.selected .blk-actions{opacity:1}
+.blk-prev{background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.06);border-radius:var(--rs);padding:12px;font-size:13.5px;line-height:1.8;color:var(--t)}
+.blk-form{background:var(--w);border:2px solid var(--pb);border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:0 4px 16px rgba(79,70,229,.1)}
+.bfl{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:5px}
+.bfi{width:100%;border:1.5px solid var(--bdr);border-radius:var(--rs);padding:8px 12px;font-size:13.5px;font-family:inherit;color:var(--t);outline:none;transition:border .12s;background:var(--w)}
+.bfi:focus{border-color:var(--p)}
+.bfta{resize:vertical;min-height:80px;line-height:1.65}
+.lx-prev-box{background:#f8fafc;border:1px solid var(--bdr);border-radius:var(--rs);padding:11px 14px;margin-top:6px;font-size:13.5px;line-height:1.8;min-height:40px}
+.lx-hint{font-size:11px;color:var(--t3);margin-top:4px}
+.mc-opt-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.mc-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--bdr);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .1s}
+.mc-radio.ok{border-color:var(--ok);background:var(--ok)}
+.pair-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.pair-sep{color:var(--t3);font-size:13px;flex-shrink:0}
+.remove-pair{background:none;border:none;color:var(--t3);cursor:pointer;padding:2px 4px;font-size:18px;line-height:1;transition:color .1s}
+.remove-pair:hover{color:var(--er)}
+.ed-right{width:240px;border-left:1px solid var(--bdr);background:var(--w);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.rp-hdr{padding:11px 13px;border-bottom:1px solid var(--bdr);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);display:flex;align-items:center;justify-content:space-between}
+.rp-body{overflow-y:auto;flex:1;padding:7px 7px}
+.rp-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--rs);cursor:pointer;transition:all .1s;margin-bottom:3px;border:1.5px solid transparent}
+.rp-item:hover{background:#f8faff;border-color:var(--bdr)}.rp-item.on{background:var(--pl);border-color:var(--pb)}
+.rp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.rp-info{flex:1;min-width:0}
+.rp-type{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
+.rp-title{font-size:12.5px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp-acts{display:flex;gap:1px;opacity:0}.rp-item:hover .rp-acts{opacity:1}
+.rp-count{font-size:11px;color:var(--t3);padding:7px 12px;text-align:center;border-top:1px solid var(--bdr)}
+.rp-foot{padding:8px 7px;border-top:1px solid var(--bdr)}
+.grip{color:var(--t3);font-size:12px;flex-shrink:0;opacity:0;cursor:grab}.rp-item:hover .grip{opacity:1}
+
+/* ── STUDENT ── */
+.s-hdr{background:var(--w);border-bottom:1px solid var(--bdr);height:52px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.dash-body{max-width:820px;margin:0 auto;padding:20px 18px;overflow-y:auto;height:calc(100vh - 52px)}
+.pads-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:18px}
+.pad-card{background:var(--w);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .14s;box-shadow:var(--sh)}
+.pad-card:hover{border-color:var(--pb);box-shadow:0 6px 20px rgba(79,70,229,.12);transform:translateY(-1px)}
+.pbi-bar{background:var(--w);border-bottom:1px solid var(--bdr);padding:8px 18px;position:sticky;top:52px;z-index:9}
+.pbi-inner{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.path-body{max-width:680px;margin:0 auto;padding:20px 16px}
+.complete-banner{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:var(--r);padding:24px;text-align:center;color:#fff;margin-bottom:16px}
+.s-blk{border-radius:var(--r);border:2px solid;padding:18px;margin-bottom:12px}
+.sb-th{background:#eef2ff;border-color:#c7d2fe}.sb-ex{background:#ecfdf5;border-color:#a7f3d0}
+.sb-fi{background:#fffbeb;border-color:#fde68a}.sb-mc{background:#f5f3ff;border-color:#ddd6fe}
+.sb-ma{background:#f0f9ff;border-color:#bae6fd}.sb-op{background:#fff1f2;border-color:#fecdd3}
+.s-blk-hdr{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.cont-box{background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.06);border-radius:var(--rs);padding:12px;font-size:13.5px;line-height:1.8}
+.code-box{background:#f8fafc;border:1px solid var(--bdr);border-radius:var(--rs);padding:12px;font-size:13px;line-height:1.8}
+.fb-ok{background:var(--ok-b);border:1px solid var(--ok-br);border-radius:var(--rs);padding:9px 13px;font-size:13px;color:var(--ok);font-weight:500;display:flex;align-items:center;gap:6px;margin:9px 0}
+.fb-er{background:var(--er-b);border:1px solid var(--er-br);border-radius:var(--rs);padding:9px 13px;font-size:13px;color:var(--er);margin:9px 0}
+.hint-box{background:var(--wn-b);border:1px solid var(--wn-br);border-radius:7px;padding:8px 11px;font-size:12.5px;color:#92400e;margin-top:7px}
+.mc-opt{width:100%;text-align:left;padding:10px 13px;border-radius:var(--rs);border:2px solid var(--bdr);background:rgba(255,255,255,.75);cursor:pointer;font-family:inherit;font-size:13.5px;transition:all .12s;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.mc-opt:hover:not(.mc-d){border-color:#a5b4fc;background:var(--pl)}
+.mc-opt.mc-sel{border-color:var(--p);background:var(--pl)}.mc-opt.mc-ok{border-color:var(--ok);background:var(--ok-b)}
+.mc-opt.mc-er{border-color:var(--er);background:var(--er-b)}.mc-opt.mc-d{cursor:default}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.mc-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:5px}
+.m-item{width:100%;text-align:left;padding:8px 12px;border-radius:7px;border:2px solid var(--bdr);background:rgba(255,255,255,.75);cursor:pointer;font-family:inherit;font-size:13px;transition:all .12s;margin-bottom:5px}
+.m-item:hover:not(.m-d){border-color:#bae6fd;background:#f0f9ff}
+.m-item.m-sel{border-color:#0284c7;background:#e0f2fe}.m-item.m-used{opacity:.6;cursor:default}
+.m-item.m-ok{border-color:var(--ok);background:var(--ok-b)}.m-item.m-er{border-color:var(--er);background:var(--er-b)}.m-item.m-d{cursor:default}
+.open-ta{width:100%;border:1.5px solid var(--bdr);border-radius:var(--rs);padding:10px;font-family:inherit;font-size:13.5px;resize:none;outline:none;background:rgba(255,255,255,.75);line-height:1.65;transition:border .12s}
+.open-ta:focus{border-color:var(--er)}
+.code-disp{background:#0f172a;border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-family:monospace;font-size:15px;font-weight:700;color:#a5f3fc;letter-spacing:3px;border:1px solid #1e3a5f}
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.mbox{background:var(--w);border-radius:14px;padding:22px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.mt{font-size:15px;font-weight:800;color:var(--t);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.mc_{background:none;border:none;cursor:pointer;color:var(--t3);font-size:20px;line-height:1}.mc_:hover{color:var(--t)}
+.toast{position:fixed;bottom:16px;right:16px;border-radius:var(--rs);padding:9px 15px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.18);transition:all .3s;pointer-events:none}
+.toast.hide{transform:translateY(80px);opacity:0}
+.tok{background:var(--ok);color:#fff}.tin{background:#0f172a;color:#fff}.ter{background:var(--er);color:#fff}
+.warn-b{background:var(--wn-b);border:1px solid var(--wn-br);border-radius:var(--rs);padding:10px 13px;font-size:13px;color:#92400e;display:flex;align-items:flex-start;gap:8px}
+.info-b{background:var(--pl);border:1px solid var(--pb);border-radius:var(--rs);padding:10px 13px;font-size:13px;color:#3730a3;display:flex;align-items:flex-start;gap:8px}
+.ok-b{background:var(--ok-b);border:1px solid var(--ok-br);border-radius:var(--rs);padding:10px 13px;font-size:13px;color:var(--ok);display:flex;align-items:flex-start;gap:8px}
+.sh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px}
+strong{font-weight:700}.katex{font-size:1.05em}
+.empty-s{text-align:center;padding:40px 20px;color:var(--t3);font-size:13px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-layer"></div>
+<div class="toast hide" id="toast"></div>
+<script>
+// ══════════════════════════════════════════════
+// KATEX
+// ══════════════════════════════════════════════
+const LX = {
+  render(f, d=false) {
+    if(!f||!window.katex) return `<code>${esc(f)}</code>`;
+    try { return katex.renderToString(f.trim(),{displayMode:d,throwOnError:false,output:'html',trust:false,strict:false}); }
+    catch(e) { return `<span style="color:#e11d48;font-family:monospace;font-size:12px;background:#fff1f2;padding:2px 5px;border-radius:4px">${esc(f)}</span>`; }
+  },
+  text(raw) {
+    if(!raw) return '';
+    let r='', last=0;
+    const p = /(\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$|\*\*.*?\*\*|\n)/g;
+    let m;
+    while((m=p.exec(raw))!==null) {
+      if(m.index>last) r+=esc(raw.slice(last,m.index));
+      const t=m[0];
+      if(t.startsWith('$$'))      r+=`<div style="text-align:center;margin:8px 0;overflow-x:auto">${this.render(t.slice(2,-2),true)}</div>`;
+      else if(t.startsWith('$'))  r+=this.render(t.slice(1,-1),false);
+      else if(t.startsWith('**')) r+=`<strong>${esc(t.slice(2,-2))}</strong>`;
+      else if(t==='\n')           r+='<br>';
+      last=p.lastIndex;
+    }
+    if(last<raw.length) r+=esc(raw.slice(last));
+    return r;
+  }
+};
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const IC={
+  dash:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  chart:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  edit:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/>',
+  grade:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  report:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  key:'<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  folder:'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  refresh:'<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+  alert:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  pencil:'<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+  copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  up:'<polyline points="18 15 12 9 6 15"/>',
+  dn:'<polyline points="6 9 12 15 18 9"/>',
+  grip:'<circle cx="9" cy="5" r="1.2"/><circle cx="15" cy="5" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="19" r="1.2"/><circle cx="15" cy="19" r="1.2"/>',
+  classes:'<rect x="3" y="3" width="18" height="7" rx="1"/><rect x="3" y="14" width="8" height="7" rx="1"/><rect x="13" y="14" width="8" height="7" rx="1"/>',
+  lock:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  unlock:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+};
+function ic(n,sz=14,c='currentColor'){const d=IC[n]||'';return`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">${d}</svg>`;}
+
+// Klassen (leeg bij opstart — leerkracht maakt aan via "Overzicht klassen")
+const CLASSES_DATA=[];
+const CLASSES={};CLASSES_DATA.forEach(c=>CLASSES[c.id]=c);
+
+// Enkel het leerkrachtaccount — leerlingen registreren via leerkrachtcode
+const ACCOUNTS={
+  teacher:{id:'t1',name:'Leerkracht',username:'leerkracht',email:'leerkracht@school.be',role:'teacher',color:'#4f46e5',code:'SCHOOL-0000'},
+};
+
+const T_STUDENTS=[];
+const T_PENDING=[];
+const SUBS=[];
+const FOLDERS=[];
+const PADS=[];
+const BM={
+  THEORY:          {label:'Theorie',        icon:'📖',color:'#6366f1',dot:'#6366f1'},
+  EXAMPLE:         {label:'Voorbeeld',      icon:'💡',color:'#10b981',dot:'#10b981'},
+  FILL_IN:         {label:'Invuloefening',  icon:'',  color:'#f59e0b',dot:'#f59e0b'},
+  MULTIPLE_CHOICE: {label:'Meerkeuze',      icon:'',  color:'#8b5cf6',dot:'#8b5cf6'},
+  MATCHING:        {label:'Verbindvraag',   icon:'',  color:'#0ea5e9',dot:'#0ea5e9'},
+  OPEN:            {label:'Open vraag',     icon:'',  color:'#e11d48',dot:'#e11d48'},
+};
+const DEFAULT_CONTENT={
+  THEORY:()=>({text:''}),
+  EXAMPLE:()=>({problem:'',solution:''}),
+  FILL_IN:()=>({q:'',ca:'',prefix:'',hint:''}),
+  MULTIPLE_CHOICE:()=>({q:'',opts:['','','',''],ci:0,exp:''}),
+  MATCHING:()=>({q:'',pairs:[{l:'',r:''},{l:'',r:''},{l:'',r:''}]}),
+  OPEN:()=>({q:'',minWords:20}),
+};
+const EDIT_BLOCKS={};
+
+const PAD_ASSIGNMENTS={};
+
+function padAssignKey(padId, targetId){ return padId+'__'+targetId; }
+function getAssign(padId, targetId){ return PAD_ASSIGNMENTS[padAssignKey(padId,targetId)]||null; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function inPeriod(padId, targetId){
+  const a=getAssign(padId,targetId);if(!a)return false;
+  const t=today();return t>=a.from&&t<=a.to;
+}
+
+let S={
+  screen:'auth', authMode:'login', authRole:'student', authErrs:{},
+  user:null,
+  tTab:'dashboard', selSub:null, gradFb:{}, gradScores:{}, tSubTab:'', selKlas:null,
+  studioSelPad:null, studioSelBlock:null, editBlocks:null,
+  folderExp:new Set(['f1','f5']),
+  isDirty:false, isSaving:false,
+  currentPad:null, sProg:{}, sMcSt:{}, sExSt:{}, sOpenSt:{}, sMatchSt:{}, sFiErr:{},
+  modal:null,
+};
+const $=id=>document.getElementById(id);
+function upd(u){
+  if(u.modal===null || (u.modal && u.modal.type !== S.modal?.type)){
+    S.modalFolderExp = new Set(); // reset mapexpansie bij elke nieuwe modal
+  }
+  Object.assign(S,u);render();
+}
+
+function av(name,color,sz=32){
+  const p=name.trim().split(' ');const init=(p[0][0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase();const fs=Math.floor(sz*.37);
+  return`<div class="av" style="width:${sz}px;height:${sz}px;background:${color}18;border:2px solid ${color}35;font-size:${fs}px;color:${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;letter-spacing:-.5px">${init}</div>`;
+}
+function clsBadge(cid){const c=CLASSES[cid];if(!c)return'';return`<span class="cls-badge" style="background:${c.color}15;color:${c.color};border:1px solid ${c.color}25">${c.name}</span>`;}
+function scoreColor(s){return s>=80?'var(--ok)':s>=50?'var(--wn)':'var(--er)';}
+function scoreBg(s){return s>=80?'#059669':s>=50?'#d97706':'#e11d48';}
+function getEditBlocks(){return S.editBlocks||(S.studioSelPad?EDIT_BLOCKS[S.studioSelPad]||[]:[])}
+function getEditBlock(id){return getEditBlocks().find(b=>b.id===id);}
+
+function render(){
+  const app=$('app');if(!app)return;
+  if(S.screen==='auth')         app.innerHTML=authHTML();
+  else if(S.screen==='teacher') app.innerHTML=teacherHTML();
+  else if(S.screen==='dash')    app.innerHTML=studentDashHTML();
+  else if(S.screen==='path')    app.innerHTML=studentPathHTML();
+  $('modal-layer').innerHTML=S.modal?modalHTML():'';
+}
+
+function authHTML(){
+  const isL=S.authMode==='login';
+  return`<div class="auth"><div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-ic">M</div><h1>MathPad</h1><p>Interactief wiskundeplatform voor onderwijs</p>
+    </div>
+    <div class="tabs-bar">
+      <button class="taab${isL?' on':''}" onclick="upd({authMode:'login',authErrs:{}})">Aanmelden</button>
+      <button class="taab${!isL?' on':''}" onclick="upd({authMode:'register',authErrs:{}})">Registreren</button>
+    </div>
+    ${isL?loginF():regF()}
+    <div class="demo-area">
+      <div style="font-size:12px;color:var(--t3);text-align:center;line-height:1.6">
+        Leerlingen melden zich aan met hun gebruikersnaam en wachtwoord.<br>
+        Nog geen account? Klik op <strong>Registreren</strong> en voer de leerkrachtcode in.
+      </div>
+    </div>
+  </div></div>`;
+}
+function loginF(){const e=S.authErrs;return`
+  ${e.general?`<div style="border-radius:var(--rs);margin-bottom:10px;padding:9px 12px;background:var(--er-b);border:1px solid var(--er-br);color:var(--er);font-size:13px">${e.general}</div>`:''}
+  <div class="fg"><label class="fl">Gebruikersnaam</label><input class="fi${e.user?' err':''}" id="l-user" type="text" placeholder="jouwgebruikersnaam" autocomplete="username"><div class="ferr">${e.user||''}</div></div>
+  <div class="fg"><label class="fl">Wachtwoord</label><input class="fi${e.pw?' err':''}" id="l-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"><div class="ferr">${e.pw||''}</div></div>
+  <button class="btn-full btn-pp" onclick="doLogin()">Aanmelden →</button>
+  <p style="text-align:center;font-size:11.5px;color:var(--t3);margin-top:9px;cursor:pointer" onclick="showToast('Contacteer de beheerder voor wachtwoordherstel (demo)','info')">Wachtwoord vergeten?</p>`;}
+function regF(){const e=S.authErrs;return`
+  <div class="fg"><label class="fl">Ik ben</label>
+    <div class="role-grid"><button class="role-btn${S.authRole==='student'?' on':''}" onclick="upd({authRole:'student'})">🎒 Leerling</button><button class="role-btn${S.authRole==='teacher'?' on':''}" onclick="upd({authRole:'teacher'})">👩&#8205;🏫 Leerkracht</button></div>
+  </div>
+  <div class="form2">
+    <div class="fg"><label class="fl">Voornaam</label><input class="fi${e.naam?' err':''}" id="r-nm" placeholder="Jan"><div class="ferr">${e.naam||''}</div></div>
+    <div class="fg"><label class="fl">Achternaam</label><input class="fi" id="r-anm" placeholder="Janssen"></div>
+  </div>
+  <div class="fg"><label class="fl">Gebruikersnaam</label><input class="fi${e.user?' err':''}" id="r-user" type="text" placeholder="jouwgebruikersnaam" autocomplete="username"><div class="ferr">${e.user||''}</div></div>
+  ${S.authRole==='teacher'?`<div class="fg"><label class="fl">E-mailadres</label><input class="fi${e.email?' err':''}" id="r-em" type="email" placeholder="naam@school.be"><div class="ferr">${e.email||''}</div></div>`:''}
+  <div class="fg"><label class="fl">Wachtwoord</label><input class="fi${e.pw?' err':''}" id="r-pw" type="password" placeholder="Min. 8 tekens + hoofdletter + cijfer"><div class="ferr">${e.pw||''}</div></div>
+  ${S.authRole==='student'?`<div class="fg"><label class="fl">Leerkrachtcode</label><input class="fi${e.code?' err':''}" id="r-code" placeholder="Bv. MARTENS-7F2K" style="font-family:monospace;letter-spacing:2px;text-transform:uppercase"><div class="ferr">${e.code||''}</div><div class="info-note">ℹ️ Vraag de code aan je leerkracht. Je verschijnt dan in hun dashboard.</div></div>`:''}
+  <button class="btn-full btn-pp" onclick="doRegister()">Account aanmaken →</button>`;}
+function doRegister(){
+  const nm=$('r-nm')?.value.trim()||'';const usr=$('r-user')?.value.trim().toLowerCase()||'';
+  const pw=$('r-pw')?.value||'';const code=$('r-code')?.value.trim().toUpperCase()||'';
+  const errs={};
+  if(!nm)errs.naam='Vul je voornaam in.';
+  if(!usr)errs.user='Gebruikersnaam is verplicht.';
+  else if(!/^[a-z0-9_]+$/.test(usr))errs.user='Alleen kleine letters, cijfers en _ toegestaan.';
+  if(S.authRole==='teacher'){const em=$('r-em')?.value.trim()||'';if(!em||!em.includes('@'))errs.email='Geldig e-mailadres vereist.';}
+  if(pw.length<8)errs.pw='Min. 8 tekens.';else if(!/[A-Z]/.test(pw))errs.pw='Min. één hoofdletter.';else if(!/[0-9]/.test(pw))errs.pw='Min. één cijfer.';
+  if(S.authRole==='student'&&!code)errs.code='Leerkrachtcode is verplicht.';
+  else if(S.authRole==='student'&&code&&code!=='MARTENS-7F2K')errs.code='Ongeldige leerkrachtcode.';
+  if(Object.keys(errs).length){upd({authErrs:errs});return;}
+  const voornaam=nm;const achternaam=$('r-anm')?.value.trim()||'';
+  const volledigenaam=(voornaam+' '+achternaam).trim();
+  if(S.authRole==='teacher'){
+    // Werk het leerkrachtaccount bij met de ingetypte gegevens
+    ACCOUNTS.teacher.name=volledigenaam||usr;
+    ACCOUNTS.teacher.username=usr;
+    ACCOUNTS.teacher.email=$('r-em')?.value.trim()||'';
+    showToast('Account aangemaakt!','ok');loginAs('teacher');
+  } else {
+    // Voeg leerling toe als nieuwe (pending) leerling
+    const kleur=['#4f46e5','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#e11d48','#14b8a6','#ec4899'];
+    const newId='s-'+Date.now();
+    const color=kleur[Math.floor(Math.random()*kleur.length)];
+    ACCOUNTS[newId]={id:newId,name:volledigenaam||usr,username:usr,role:'student',classId:null,color};
+    T_PENDING.push({id:newId,name:volledigenaam||usr,color,when:'Zojuist'});
+    showToast('Account aangemaakt! Je leerkracht wijst je toe aan een klas.','ok');
+    // Log in als deze nieuwe leerling
+    loginAs(newId);
+  }
+}
+function loginAs(id){
+  const user=ACCOUNTS[id];if(!user)return;
+  if(user.role==='teacher')upd({user,screen:'teacher',tTab:'dashboard',authErrs:{}});
+  else upd({user,screen:'dash',authErrs:{},currentPad:null});
+}
+
+function teacherHTML(){
+  const TABS=[
+    {id:'dashboard',  icon:'dash',    label:'Dashboard'},
+    {id:'klassen',    icon:'classes', label:'Overzicht klassen',badge:T_PENDING.length||undefined},
+    {id:'grading',    icon:'grade',   label:'Verbeteren',badge:SUBS.filter(s=>s.status==='PENDING').length},
+    {id:'reports',    icon:'report',  label:'Rapporten'},
+    {id:'studio',     icon:'edit',    label:'Leerstudio'},
+    {id:'settings',   icon:'settings',label:'Instellingen'},
+  ];
+  return`<div class="t-layout">
+    <div class="sidebar">
+      <div class="sb-brand"><div class="sb-ic">M</div><div><span class="sb-nm">MathPad</span> <span class="sb-tg">Studio</span></div></div>
+      <div class="sb-sec">Navigatie</div>
+      <div class="nw">${TABS.map(t=>`<button class="ni${S.tTab===t.id?' on':''}" onclick="upd({tTab:'${t.id}',selSub:null,tSubTab:''})">${ic(t.icon,14)} ${t.label}${t.badge?`<span class="nb">${t.badge}</span>`:''}</button>`).join('')}</div>
+      <div class="sb-foot"><div class="sb-user">
+        ${av(S.user.name,S.user.color,28)}
+        <div><div style="font-size:12px;font-weight:600;color:#e2e8f0">${S.user.name}</div><div style="font-size:10.5px;color:#64748b">Leerkracht</div></div>
+        <button class="sb-logout" onclick="upd({screen:'auth',user:null})" title="Uitloggen">${ic('logout',14,'#64748b')}</button>
+      </div></div>
+    </div>
+    <div class="t-main">
+      ${S.tTab==='studio'?studioHTML():regularTeacherHTML()}
+    </div>
+  </div>`;
+}
+
+function regularTeacherHTML(){
+  const TITLES={dashboard:'Dashboard',klassen:'Overzicht klassen & leerlingen',grading:'Verbeteren',reports:'Rapporten',settings:'Instellingen'};
+  const SUBS2={dashboard:'Overzicht leerlingen en activiteit',klassen:`${CLASSES_DATA.length} klassen · ${T_STUDENTS.length} leerlingen${T_PENDING.length?` · ${T_PENDING.length} wachten`:''}`,grading:`${SUBS.filter(s=>s.status==='PENDING').length} te verbeteren`,reports:'Statistieken',settings:'Profiel en account'};
+  return`<div class="topbar"><div><div class="page-title">${TITLES[S.tTab]||''}</div><div class="page-sub">${SUBS2[S.tTab]||''}</div></div>
+  </div>
+  <div class="ca">${teacherContent()}</div>`;
+}
+
+function teacherContent(){
+  switch(S.tTab){
+    case 'dashboard': return tDash();
+    case 'klassen':   return tKlassen();
+    case 'grading':   return tGrading();
+    case 'reports':   return tReports();
+    case 'settings':  return tSettings();
+    default: return tDash();
+  }
+}
+
+// ── OVERZICHT KLASSEN & LEERLINGEN ──
+const CPAL_OPTS=['#4f46e5','#0ea5e9','#10b981','#f59e0b','#e11d48','#8b5cf6','#ec4899','#14b8a6'];
+
+function tKlassen(){
+  const isPend=S.tSubTab==='pending';
+  const selCls=S.selKlas?CLASSES_DATA.find(c=>c.id===S.selKlas):null;
+
+  // ── Detailpagina van één klas ──
+  if(selCls){
+    const sts=T_STUDENTS.filter(s=>s.classId===selCls.id);
+    const activePads=PADS.filter(p=>(p.classIds||[]).includes(selCls.id));
+    return`<div>
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px;flex-wrap:wrap">
+        <button class="btn bs bsm" onclick="upd({selKlas:null,tSubTab:''})">← Alle klassen</button>
+        <div style="width:11px;height:11px;border-radius:50%;background:${selCls.color};flex-shrink:0"></div>
+        <div style="font-size:18px;font-weight:800;color:var(--t)">${selCls.name}</div>
+        <span style="font-size:12.5px;color:var(--t3)">${selCls.year} · ${selCls.desc}</span>
+        <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn bs bxs" onclick="upd({modal:{type:'reset-pw',st:null,classId:selCls.id}})">${ic('lock',11)} Wachtwoorden resetten</button>
+          <button class="btn bp bxs" onclick="upd({modal:{type:'assign-pad-klas',classId:'${selCls.id}'}})">${ic('plus',11,'#fff')} Leerpad toewijzen</button>
+          <button class="btn bg_ bxs" onclick="upd({modal:{type:'edit-klas',klas:selCls}})">${ic('pencil',11)}</button>
+        </div>
+      </div>
+      <div class="card cp">
+        <div class="ct">Leerlingen (${sts.length})</div>
+        ${sts.length===0?`<div class="empty-s">Nog geen leerlingen in deze klas.</div>`
+        :sts.map(s=>{
+          const classPads=PADS.filter(p=>p.published&&(p.classIds||[]).includes(selCls.id));
+          const indivPads=PADS.filter(p=>p.published
+            && !(p.classIds||[]).includes(selCls.id)
+            && (S.studentPadAccess||{})['st-'+s.id+'-pad-'+p.id]===true
+          );
+          const allMyPads=[...classPads,...indivPads];
+          const tod=today();
+          const padCard=(pad,isIndiv)=>{
+            const assign=getAssign(pad.id,isIndiv?s.id:selCls.id)||getAssign(pad.id,s.id);
+            const isExpired=assign?.to&&assign.to<tod;
+            const blocks=EDIT_BLOCKS[pad.id]||[];
+            const done=blocks.filter(b=>S.sProg?.[b.id]?.done).length;
+            const pct=blocks.length?Math.round(done/blocks.length*100):0;
+            const isDone=done===blocks.length&&blocks.length>0;
+            if(isExpired) return`<div style="display:inline-flex;align-items:center;gap:6px;padding:3px 9px;background:#f1f5f9;border:1px solid var(--bdr);border-radius:6px;margin:0 4px 4px 0;font-size:11.5px;color:var(--t3)">${pad.title} · ${pct}%${isDone?' ✅':''}</div>`;
+            return`<div style="background:${isDone?'var(--ok-b)':'var(--bg2)'};border:1.5px solid ${isDone?'var(--ok-br)':isIndiv?'var(--pb)':'var(--bdr)'};border-radius:8px;padding:7px 11px;min-width:150px;flex:1;max-width:260px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;gap:4px">
+                <span style="font-size:12.5px;font-weight:700;color:var(--t);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pad.title}</span>
+                <span style="font-size:12px;font-weight:800;color:${isDone?'var(--ok)':pct>0?'var(--p)':'var(--t3)'};flex-shrink:0">${pct}%</span>
+              </div>
+              <div class="pb" style="height:4px;margin-bottom:3px"><div class="pf" style="width:${pct}%;background:${isDone?'var(--ok)':'var(--p)'}"></div></div>
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+                <span style="font-size:10.5px;color:var(--t3)">${done}/${blocks.length} blokken${isDone?' ✅':''}</span>
+                ${isIndiv?`<span style="font-size:9.5px;background:var(--pl);color:var(--p);padding:1px 6px;border-radius:8px;font-weight:700">👤 Individueel</span>`:''}
+                ${assign?.to?`<span style="font-size:9.5px;color:#0284c7">tot ${assign.to}</span>`:''}
+              </div>
+            </div>`;
+          };
+          const activeCls=classPads.filter(p=>{const a=getAssign(p.id,selCls.id);return!a||!a.to||a.to>=tod;});
+          const expiredCls=classPads.filter(p=>{const a=getAssign(p.id,selCls.id);return a?.to&&a.to<tod;});
+          return`<div style="padding:12px 0;border-bottom:1px solid #f1f5f9">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+              ${av(s.name,s.color,30)}
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;color:var(--t)">${s.name}</div>
+                <div style="font-size:11.5px;color:var(--t3)">Actief: ${s.lastActive}</div>
+              </div>
+              <div style="display:flex;gap:5px">
+                <button class="btn bs bxs" onclick="upd({modal:{type:'assign-pad-student',student:${JSON.stringify(s).replace(/"/g,"'")}}})">${ic('file',11)} Leerpaden</button>
+              </div>
+            </div>
+            <div style="padding-left:39px">
+              ${activeCls.length===0&&indivPads.length===0
+                ?`<div style="font-size:12px;color:var(--t3);font-style:italic">Geen actieve leerpaden. <button class="btn bg_ bxs" onclick="upd({modal:{type:'assign-pad-student',student:${JSON.stringify(s).replace(/"/g,"'")}}})" style="font-style:normal">+ Toewijzen</button></div>`
+                :`<div style="display:flex;flex-wrap:wrap;gap:7px">
+                  ${activeCls.map(p=>padCard(p,false)).join('')}
+                  ${indivPads.map(p=>padCard(p,true)).join('')}
+                </div>`}
+              ${expiredCls.length?`<div style="margin-top:6px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:3px">Afgelopen</div><div>${expiredCls.map(p=>padCard(p,false)).join('')}</div></div>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  // ── Pending leerlingen ──
+  if(isPend){
+    return`<div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <button class="btn bs bsm" onclick="upd({tSubTab:''})">← Alle klassen</button>
+        <span style="font-size:14px;font-weight:700;color:var(--t)">${ic('bell',14,'#d97706')} Nieuwe leerlingen (${T_PENDING.length})</span>
+      </div>
+      ${T_PENDING.length===0?`<div class="empty-s">Geen nieuwe leerlingen.</div>`
+      :`<div class="tw"><table><thead><tr><th></th><th>Naam</th><th>Aangemeld</th><th></th></tr></thead><tbody>
+        ${T_PENDING.map(p=>`<tr>
+          <td>${av(p.name,p.color,28)}</td>
+          <td style="font-weight:600">${p.name}</td>
+          <td style="color:var(--t3)">${p.when}</td>
+          <td><button class="btn bp bxs" onclick="upd({modal:{type:'assign',st:${JSON.stringify(p).replace(/"/g,"'")}}})">Toewijzen aan klas</button></td>
+        </tr>`).join('')}
+      </tbody></table></div>`}
+    </div>`;
+  }
+
+  // ── Overzicht alle klassen ──
+  return`<div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;color:var(--t2)">${CLASSES_DATA.length} klassen · ${T_STUDENTS.length} leerlingen</span>
+        ${T_PENDING.length?`<button class="btn bsm" style="background:var(--wn-b);color:#92400e;border:1px solid var(--wn-br)" onclick="upd({tSubTab:'pending'})">${ic('bell',11,'#d97706')} ${T_PENDING.length} nieuw</button>`:''}
+      </div>
+      <button class="btn bp" onclick="upd({modal:{type:'new-klas'}})">${ic('plus',12,'#fff')} Nieuwe klas</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
+      ${CLASSES_DATA.map(cls=>{
+        const sts=T_STUDENTS.filter(s=>s.classId===cls.id);
+        const avg=sts.length?Math.round(sts.reduce((a,s)=>a+s.score,0)/sts.length):0;
+        const activePads=PADS.filter(p=>(p.classIds||[]).includes(cls.id));
+        return`<div class="card" style="overflow:hidden;cursor:pointer;transition:all .14s" onclick="upd({selKlas:'${cls.id}'})" onmouseenter="this.style.boxShadow='0 6px 20px rgba(0,0,0,.1)'" onmouseleave="this.style.boxShadow=''">
+          <div style="height:5px;background:${cls.color}"></div>
+          <div class="cp">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">
+              <div>
+                <div style="font-size:22px;font-weight:900;color:var(--t);letter-spacing:-.5px">${cls.name}</div>
+                <div style="font-size:12px;color:var(--t3);margin-top:1px">${cls.year} · ${cls.desc}</div>
+              </div>
+              <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+                <button class="btn bs bxs" onclick="upd({modal:{type:'assign-pad-klas',classId:'${cls.id}'}})" title="Leerpad toewijzen">${ic('plus',11)} Leerpad</button>
+                <button class="btn bs bxs" onclick="upd({modal:{type:'edit-klas',klas:${JSON.stringify(cls).replace(/"/g,"'")}}});" title="Bewerken">${ic('pencil',11)}</button>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--t3);margin-bottom:4px"><span>Gem. score</span><span style="font-weight:700;color:${scoreColor(avg)}">${avg}%</span></div>
+            <div class="pb" style="height:6px;margin-bottom:10px"><div class="pf" style="width:${avg}%;background:${scoreBg(avg)}"></div></div>
+            <div style="display:flex;gap:12px;font-size:12px;color:var(--t2)">
+              <span>${ic('users',12,'var(--t3)')} ${sts.length} leerlingen</span>
+              <span>${ic('file',12,'var(--t3)')} ${activePads.length} leerpaden</span>
+            </div>
+            ${activePads.length>0?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr)">
+              <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:5px">Actieve leerpaden</div>
+              ${activePads.slice(0,3).map(p=>`<div style="font-size:12px;color:var(--t2);padding:2px 0">• ${p.title}</div>`).join('')}
+              ${activePads.length>3?`<div style="font-size:11.5px;color:var(--t3)">+${activePads.length-3} meer</div>`:''}
+            </div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="card" style="border:2px dashed var(--bdr);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:160px" onclick="upd({modal:{type:'new-klas'}})" onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background='transparent'">
+        <div style="text-align:center;color:var(--t3)">${ic('plus',22,'var(--t3)')}<div style="font-size:12.5px;font-weight:600;margin-top:7px">Nieuwe klas</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── DASHBOARD ──
+function tDash(){
+  const avg=Math.round(T_STUDENTS.reduce((a,s)=>a+s.score,0)/T_STUDENTS.length);
+  const active=T_STUDENTS.filter(s=>['8 min','1u','30 min'].includes(s.lastActive)).length;
+  const done=T_STUDENTS.filter(s=>s.done===s.total).length;
+  return`<div>
+    ${T_PENDING.length?`<div class="warn-b" style="margin-bottom:16px;cursor:pointer" onclick="upd({tTab:'klassen',tSubTab:'pending'})">${ic('bell',14,'#d97706')}<div><strong>${T_PENDING.length} nieuwe leerlingen</strong> wachten op klasindeling. <span style="text-decoration:underline">Toewijzen →</span></div></div>`:''}
+    <div class="sg">
+      <div class="sc"><div class="sc-ic" style="background:#eef2ff">${ic('users',15,'#4f46e5')}</div><div class="sc-n">${T_STUDENTS.length+T_PENDING.length}</div><div class="sc-l">Leerlingen totaal</div></div>
+      <div class="sc"><div class="sc-ic" style="background:#ecfdf5">${ic('check',15,'#059669')}</div><div class="sc-n">${active}</div><div class="sc-l">Actief vandaag</div></div>
+      <div class="sc"><div class="sc-ic" style="background:#fffbeb">${ic('chart',15,'#d97706')}</div><div class="sc-n">${avg}%</div><div class="sc-l">Gemiddelde score</div></div>
+      <div class="sc"><div class="sc-ic" style="background:#f5f3ff">${ic('check',15,'#8b5cf6')}</div><div class="sc-n">${done}</div><div class="sc-l">Paden voltooid</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card cp">
+        <div class="ct">Leerlingvoortgang</div>
+        ${T_STUDENTS.map(s=>{const pct=Math.round(s.done/s.total*100);return`<div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
+          ${av(s.name,s.color,26)}
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><span style="font-size:12px;font-weight:600">${s.name}</span>${clsBadge(s.classId)}</div>
+            <div style="display:flex;align-items:center;gap:5px"><div class="pb"><div class="pf" style="width:${pct}%;background:${scoreBg(pct)}"></div></div><span style="font-size:11px;color:var(--t2);min-width:28px">${pct}%</span></div>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:${scoreColor(s.score)}">${s.score}%</span>
+        </div>`;}).join('')}
+      </div>
+      <div class="card cp">
+        <div class="ct">Recente activiteit</div>
+        ${T_STUDENTS.length===0?`<div class="empty-s" style="padding:24px 0">Nog geen activiteit. Leerlingen verschijnen hier zodra ze aan de slag gaan.</div>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function tStudents(){
+  const isPend=S.tSubTab==='pending';
+  return`<div>
+    <div class="stabs">
+      <button class="stab${!isPend?' on':''}" onclick="upd({tSubTab:''})">Alle (${T_STUDENTS.length})</button>
+      <button class="stab${isPend?' on':''}" onclick="upd({tSubTab:'pending'})">${ic('bell',12,'#d97706')} Nieuwe (${T_PENDING.length})</button>
+    </div>
+    ${isPend?`<div class="tw"><table><thead><tr><th></th><th>Naam</th><th>Aangemeld</th><th></th></tr></thead><tbody>
+      ${T_PENDING.map(p=>`<tr><td>${av(p.name,p.color,28)}</td><td style="font-weight:600">${p.name}</td><td style="color:var(--t3)">${p.when}</td>
+      <td><button class="btn bp bxs" onclick="upd({modal:{type:'assign',st:${JSON.stringify(p).replace(/"/g,"'")}}})">Toewijzen</button></td></tr>`).join('')}
+    </tbody></table></div>`
+    :`<div class="tw"><table><thead><tr><th></th><th>Naam</th><th>Klas</th><th>Score</th><th>Voortgang</th><th>Actief</th></tr></thead><tbody>
+      ${T_STUDENTS.map(s=>{const pct=Math.round(s.done/s.total*100);return`<tr>
+        <td>${av(s.name,s.color,28)}</td>
+        <td style="font-weight:600">${s.name}${s.score<55?'<br><span class="bdg bamb" style="font-size:9px">Vastgelopen</span>':''}</td>
+        <td>${clsBadge(s.classId)}</td>
+        <td style="font-weight:700;color:${scoreColor(s.score)}">${s.score}%</td>
+        <td style="min-width:90px"><div style="display:flex;align-items:center;gap:5px"><div class="pb"><div class="pf" style="width:${pct}%;background:${scoreBg(pct)}"></div></div><span style="font-size:11px;color:var(--t2)">${pct}%</span></div></td>
+        <td style="font-size:12px;color:var(--t3)">${s.lastActive}</td>
+      </tr>`;}).join('')}
+    </tbody></table></div>`}
+  </div>`;
+}
+
+function tGrading(){
+  const showPend=S.tSubTab!=='graded';const shown=(showPend?SUBS.filter(s=>s.status==='PENDING'):SUBS.filter(s=>s.status!=='PENDING'));
+  const sel=S.selSub?SUBS.find(s=>s.id===S.selSub):null;const selSt=sel?T_STUDENTS.find(s=>s.id===sel.sid):null;
+  return`<div>
+    <div class="stabs">
+      <button class="stab${showPend?' on':''}" onclick="upd({tSubTab:'pending',selSub:null})">${ic('alert',12,'#d97706')} Te verbeteren (${SUBS.filter(s=>s.status==='PENDING').length})</button>
+      <button class="stab${!showPend?' on':''}" onclick="upd({tSubTab:'graded',selSub:null})">${ic('check',12,'var(--ok)')} Verbeterd (${SUBS.filter(s=>s.status!=='PENDING').length})</button>
+    </div>
+    <div class="grade-layout">
+      <div class="grade-list">
+        <div class="grade-hdr">Inzendingen (${shown.length})</div>
+        ${shown.length===0?`<div class="empty-s">${showPend?'Niets te verbeteren!':'Nog geen verbeterde antwoorden.'}</div>`
+        :shown.map(sub=>{const st=T_STUDENTS.find(s=>s.id===sub.sid);if(!st)return'';
+          return`<div class="gi${S.selSub===sub.id?' on':''}" onclick="upd({selSub:'${sub.id}'})">
+            ${av(st.name,st.color,28)}
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub.blockTitle}</div>
+              <div style="display:flex;align-items:center;gap:4px;margin-top:2px">${clsBadge(st.classId)}<span style="font-size:10.5px;color:var(--t3)">${sub.when}</span></div>
+            </div>
+            <div style="width:7px;height:7px;border-radius:50%;background:${sub.status==='PENDING'?'var(--wn)':sub.correct?'var(--ok)':'var(--er)'};flex-shrink:0"></div>
+          </div>`;}).join('')}
+      </div>
+      <div class="grade-panel">
+        ${!sel?`<div class="empty-s">${ic('grade',28)}<br><br>Selecteer een inzending</div>`
+        :`<div style="display:flex;align-items:center;gap:11px;margin-bottom:14px;padding-bottom:13px;border-bottom:1px solid var(--bdr)">
+          ${av(selSt.name,selSt.color,34)}<div><div style="font-size:14px;font-weight:800">${selSt.name}</div>
+          <div style="display:flex;gap:5px;margin-top:3px">${clsBadge(selSt.classId)}<span class="bdg ${sel.type==='OPEN'?'bpnk':sel.type==='FILL_IN'?'bamb':'bvio'}">${sel.type==='OPEN'?'Open':sel.type==='FILL_IN'?'Invul':'MC'}</span></div></div>
+          <button class="btn bg_ bxs" style="margin-left:auto" onclick="upd({selSub:null})">${ic('x',12)}</button>
+        </div>
+        <div class="fg"><label class="bfl">Vraag</label><div style="background:var(--bg2);border-radius:var(--rs);padding:9px 12px;font-size:13px;font-weight:600">${sel.blockTitle}</div></div>
+        <div class="fg"><label class="bfl">Antwoord</label><div class="ans-box">"${sel.answer}"</div></div>
+        ${sel.status==='AUTO'?`<div class="${sel.correct?'ok-b':'warn-b'}" style="margin-bottom:12px">${sel.correct?ic('check',13,'var(--ok)'):ic('alert',13,'#d97706')}<span>${sel.correct?'Automatisch correct':'Automatisch fout'}</span></div>`:''}
+        <div style="display:grid;grid-template-columns:70px 1fr;gap:11px;margin-bottom:13px">
+          <div class="fg"><label class="bfl">Score/${sel.max}</label><input class="score-inp" type="number" id="g-score" min="0" max="${sel.max}" value="${S.gradScores[sel.id]??sel.score??''}" placeholder="0"></div>
+          <div class="fg"><label class="bfl">Feedback</label><textarea class="fi" id="g-fb" rows="3" style="resize:none;font-size:13px" placeholder="Schrijf feedback...">${S.gradFb[sel.id]||''}</textarea></div>
+        </div>
+        <div style="display:flex;gap:7px"><button class="btn bp" onclick="saveGrade('${sel.id}')">${ic('check',13,'#fff')} Opslaan</button><button class="btn bs bsm" onclick="upd({selSub:null})">Annuleer</button></div>`}
+      </div>
+    </div>
+  </div>`;
+}
+function saveGrade(id){
+  const score=$('g-score')?.value;const fb=$('g-fb')?.value||'';
+  const sub=SUBS.find(s=>s.id===id);if(sub){sub.status='GRADED';sub.score=parseFloat(score)||0;sub.feedback=fb;sub.correct=sub.score>0;}
+  upd({gradScores:{...S.gradScores,[id]:parseFloat(score)||0},gradFb:{...S.gradFb,[id]:fb},selSub:null});
+  showToast('Antwoord verbeterd!','ok');
+}
+
+function tReports(){
+  const selPadId=S.reportPad||(PADS.find(p=>p.published)?.id)||null;
+  const selPad=PADS.find(p=>p.id===selPadId);
+  const blocks=(EDIT_BLOCKS[selPadId]||[]).sort((a,b)=>a.order-b.order);
+  const DEMO_SCORES={'b1':{avg:94,att:5},'b2':{avg:88,att:5},'b3':{avg:52,att:5},'b4':{avg:78,att:5},'b5':{avg:41,att:4},'b6':{avg:63,att:3}};
+  const blockRows=blocks.map(b=>{const sc=DEMO_SCORES[b.id]||{avg:Math.floor(50+Math.random()*45),att:Math.floor(2+Math.random()*4)};const col=sc.avg>=80?'var(--ok)':sc.avg>=55?'var(--wn)':'var(--er)';return{b,sc,col};});
+  const sorted=[...blockRows].sort((a,b)=>a.sc.avg-b.sc.avg);
+
+  if(!S.reportFolderExp) S.reportFolderExp=new Set(FOLDERS.map(f=>f.id));
+
+  const renderTree=(parentId,depth=0)=>FOLDERS.filter(f=>f.parentId===parentId).map(f=>{
+    const exp=S.reportFolderExp.has(f.id);
+    const pads=PADS.filter(p=>p.folderId===f.id&&p.published);
+    const hasSubs=FOLDERS.some(sf=>sf.parentId===f.id);
+    if(!pads.length&&!hasSubs)return'';
+    const pl=depth*16;
+    return`<div style="margin-bottom:2px">
+      <div onclick="toggleReportFolder('${f.id}')"
+        onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'"
+        style="display:flex;align-items:center;gap:8px;padding:8px 10px 8px ${pl+10}px;border-radius:8px;cursor:pointer;user-select:none;background:transparent;transition:background .1s">
+        <span style="font-size:10px;color:${exp?'var(--t2)':'var(--t3)'};display:inline-block;transform:rotate(${exp?90:0}deg);transition:transform .15s;flex-shrink:0">▶</span>
+        ${ic('folder',15,exp?'#f59e0b':'#cbd5e1')}
+        <span style="font-size:13px;font-weight:700;color:${exp?'var(--t)':'var(--t2)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.name)}</span>
+        ${pads.length?`<span style="font-size:10.5px;color:var(--t3);background:var(--bg);border:1px solid var(--bdr);padding:1px 7px;border-radius:10px;flex-shrink:0">${pads.length}</span>`:''}
+      </div>
+      ${exp?`<div style="margin-left:${pl+20}px;border-left:2px solid #e2e8f0;padding-left:6px;margin-bottom:4px">
+        ${pads.map(pad=>{
+          const isSel=pad.id===selPadId;
+          return`<div onclick="upd({reportPad:'${pad.id}'})"
+            onmouseenter="this.style.background='${isSel?'var(--pl)':'#f8faff'}'" onmouseleave="this.style.background='${isSel?'var(--pl)':'transparent'}'"
+            style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:2px;border-radius:7px;cursor:pointer;background:${isSel?'var(--pl)':'transparent'};border:1.5px solid ${isSel?'var(--pb)':'transparent'};transition:all .1s">
+            ${ic('file',14,isSel?'var(--p)':'#94a3b8')}
+            <span style="font-size:13px;font-weight:${isSel?700:500};color:${isSel?'var(--p)':'var(--t)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(pad.title)}</span>
+            ${isSel?`<span style="font-size:12px;color:var(--p);font-weight:700;flex-shrink:0">✓</span>`:''}
+          </div>`;
+        }).join('')}
+        ${renderTree(f.id,depth+1)}
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  const treeHTML=renderTree(null);
+
+  return`<div>
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start">
+
+      <!-- Linkerpaneel: mappenstructuur -->
+      <div class="card" style="overflow:hidden">
+        <div style="padding:14px 16px 10px;border-bottom:1px solid var(--bdr);background:var(--bg2)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">MathPad kiezen</div>
+        </div>
+        <div style="padding:8px 8px;max-height:calc(100vh - 220px);overflow-y:auto">
+          ${treeHTML||`<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Geen gepubliceerde leerpaden.</div>`}
+        </div>
+      </div>
+
+      <!-- Rechterpaneel: analyse -->
+      <div>
+        ${!selPad
+          ?`<div class="card cp" style="text-align:center;padding:48px 20px;color:var(--t3)">
+              ${ic('chart',32,'var(--t3)')}<br><br>
+              <div style="font-size:15px;font-weight:600;color:var(--t2);margin-top:4px">Kies een MathPad</div>
+              <div style="font-size:13px;margin-top:6px">Selecteer een leerpad in de mappenstructuur links.</div>
+            </div>`
+          :`<div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+              <div style="background:var(--pl);border:1.5px solid var(--pb);border-radius:9px;padding:8px 14px;display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                ${ic('file',16,'var(--p)')}
+                <div>
+                  <div style="font-size:15px;font-weight:800;color:var(--p)">${esc(selPad.title)}</div>
+                  <div style="font-size:11.5px;color:var(--t3);margin-top:1px">${FOLDERS.find(f=>f.id===selPad.folderId)?.name||''}</div>
+                </div>
+              </div>
+            </div>
+            <div class="sg" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+              <div class="sc"><div class="sc-ic" style="background:#eef2ff">${ic('file',15,'#4f46e5')}</div><div class="sc-n">${blocks.length}</div><div class="sc-l">Blokken</div></div>
+              <div class="sc"><div class="sc-ic" style="background:#ecfdf5">${ic('users',15,'#059669')}</div><div class="sc-n">${T_STUDENTS.length}</div><div class="sc-l">Leerlingen</div></div>
+              <div class="sc"><div class="sc-ic" style="background:#fffbeb">${ic('chart',15,'#d97706')}</div><div class="sc-n">${blockRows.length?Math.round(blockRows.reduce((a,r)=>a+r.sc.avg,0)/blockRows.length):0}%</div><div class="sc-l">Gemiddelde</div></div>
+              <div class="sc"><div class="sc-ic" style="background:#fff1f2">${ic('alert',15,'#e11d48')}</div><div class="sc-n">${blockRows.filter(r=>r.sc.avg<55).length}</div><div class="sc-l">Moeilijk</div></div>
+            </div>
+            <div class="two-col">
+              <div class="card cp">
+                <div class="ct">Gemiddelde score per blok</div>
+                ${blockRows.length===0?`<div class="empty-s">Geen blokken in dit leerpad.</div>`
+                :blockRows.map(({b,sc,col})=>`<div style="margin-bottom:12px">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+                    <span style="font-size:13px;font-weight:600;color:var(--t);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px">${esc(b.title)}</span>
+                    <span style="font-size:14px;font-weight:800;color:${col};flex-shrink:0">${sc.avg}%</span>
+                  </div>
+                  <div style="height:10px;background:#f1f5f9;border-radius:5px;overflow:hidden;margin-bottom:3px">
+                    <div style="height:100%;width:${sc.avg}%;background:${col};border-radius:5px;transition:width .6s"></div>
+                  </div>
+                  <div style="font-size:11px;color:var(--t3)">${sc.att} leerlingen · ${BM[b.type]?.label||b.type}</div>
+                </div>`).join('')}
+              </div>
+              <div class="card cp">
+                <div class="ct">Moeilijkste blokken</div>
+                ${sorted.slice(0,5).map(({b,sc,col},i)=>`<div style="display:flex;align-items:flex-start;gap:12px;padding:11px 12px;background:${sc.avg<55?'var(--er-b)':sc.avg<80?'var(--wn-b)':'var(--ok-b)'};border-radius:9px;margin-bottom:8px;border:1px solid ${sc.avg<55?'var(--er-br)':sc.avg<80?'var(--wn-br)':'var(--ok-br)'}">
+                  <div style="min-width:26px;height:26px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff">${i+1}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:700;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b.title)}</div>
+                    <div style="font-size:11.5px;color:var(--t3);margin-top:2px">${BM[b.type]?.label||b.type} · ${sc.att} leerlingen</div>
+                    <div style="margin-top:7px;height:7px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden">
+                      <div style="height:100%;width:${sc.avg}%;background:${col};border-radius:4px"></div>
+                    </div>
+                  </div>
+                  <span style="font-size:18px;font-weight:900;color:${col};flex-shrink:0;line-height:1.2">${sc.avg}%</span>
+                </div>`).join('')}
+                <div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--bdr)">
+                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:9px">Gemiddelde per bloktype</div>
+                  ${Object.entries(BM).map(([type,bm])=>{const ofType=blockRows.filter(r=>r.b.type===type);if(!ofType.length)return'';const avg=Math.round(ofType.reduce((a,r)=>a+r.sc.avg,0)/ofType.length);const col=avg>=80?'var(--ok)':avg>=55?'var(--wn)':'var(--er)';return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="font-size:12px;color:var(--t2);min-width:115px;text-align:right;font-weight:500">${bm.label}</div><div style="flex:1;height:18px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="height:100%;width:${avg}%;background:${col};border-radius:4px;display:flex;align-items:center;padding-left:7px"><span style="font-size:10.5px;font-weight:700;color:#fff">${avg}%</span></div></div></div>`;}).join('')}
+                </div>
+              </div>
+            </div>
+          </div>`}
+      </div>
+    </div>
+  </div>`;
+}
+function toggleReportFolder(id){if(!S.reportFolderExp)S.reportFolderExp=new Set(FOLDERS.map(f=>f.id));const e=new Set(S.reportFolderExp);e.has(id)?e.delete(id):e.add(id);upd({reportFolderExp:e});}
+
+function tSettings(){
+  const nameParts=S.user.name.trim().split(' ');
+  const voornaam=nameParts[0]||'';const achternaam=nameParts.slice(1).join(' ')||'';
+  return`<div style="max-width:600px">
+    <div class="card cp" style="margin-bottom:13px">
+      <div class="ct">${ic('user',13)} Profiel</div>
+      <div class="form2">
+        <div class="fg"><label class="fl">Voornaam</label><input class="fi" id="set-nm" value="${esc(voornaam)}"></div>
+        <div class="fg"><label class="fl">Achternaam</label><input class="fi" id="set-anm" value="${esc(achternaam)}"></div>
+      </div>
+      <div class="fg" style="margin-bottom:11px"><label class="fl">E-mailadres</label><input class="fi" id="set-em" value="${esc(S.user.email||'')}"></div>
+      <button class="btn bp bsm" onclick="saveProfile()">Opslaan</button>
+    </div>
+    <div class="card cp">
+      <div class="ct">${ic('key',13)} Leerkrachtcode</div>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:11px">Nieuwe leerlingen registreren via deze code. Bestaande leerlingen blijven altijd verbonden — ook als je de code wijzigt.</p>
+      <div class="code-disp" style="margin-bottom:11px">${S.user.code}<button class="btn bg_ bsm" onclick="navigator.clipboard?.writeText('${S.user.code}');showToast('Gekopieerd!','info')" style="color:#94a3b8">${ic('copy',11,'#94a3b8')}</button></div>
+      <button class="btn bs bsm" onclick="regenCode()">${ic('refresh',12)} Nieuwe code genereren</button>
+    </div>
+  </div>`;
+}
+function saveProfile(){
+  const nm=document.getElementById('set-nm')?.value.trim()||'';
+  const anm=document.getElementById('set-anm')?.value.trim()||'';
+  const em=document.getElementById('set-em')?.value.trim()||'';
+  S.user.name=(nm+' '+anm).trim()||S.user.name;
+  S.user.email=em;
+  // Sync naar ACCOUNTS
+  if(ACCOUNTS[S.user.id]) ACCOUNTS[S.user.id].name=S.user.name;
+  if(ACCOUNTS.teacher&&S.user.role==='teacher') ACCOUNTS.teacher.name=S.user.name;
+  upd({});showToast('Profiel opgeslagen','ok');
+}
+function regenCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const suf=Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  S.user.code='MARTENS-'+suf;
+  upd({});
+  showToast('Nieuwe code aangemaakt. Bestaande leerlingen blijven verbonden.','ok');
+}
+
+function studioHTML(){
+  const blocks=getEditBlocks().slice().sort((a,b)=>a.order-b.order);
+  const pad=PADS.find(p=>p.id===S.studioSelPad);
+  const saveState=S.isSaving?'Opslaan...':S.isDirty?'Niet opgeslagen':S.studioSelPad?'Opgeslagen':'';
+  return`<div class="studio-wrap">
+    <div class="studio-topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:14px;font-weight:800;color:var(--t)">Leerstudio</span>
+        ${pad?`<span style="color:var(--t3);font-size:13px">›</span><span style="font-size:13px;font-weight:600;color:var(--t2)">${pad.title}</span><span class="bdg ${pad.published?'bgreen':'bamb'}" style="font-size:10.5px">${pad.published?'Gepubliceerd':'Concept'}</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11.5px;color:var(--t3)">${saveState}</span>
+        ${pad?`<button class="btn bs bsm" onclick="savePad(false)">Opslaan</button><button class="btn bp bsm" onclick="savePad(true)">${pad.published?'✅ Gepubliceerd':'🚀 Publiceer'}</button>`:''}
+      </div>
+    </div>
+    <div class="studio-body">
+      <div class="ed-left">
+        <div class="ed-left-hdr">
+          <span class="ed-left-lbl">Mappen &amp; MathPads</span>
+          <button class="btn bp bxs" onclick="upd({modal:{type:'studio-new',folderId:null}})" title="Nieuwe map of MathPad">${ic('plus',11,'#fff')} Nieuw</button>
+        </div>
+        <div class="ftree">${renderFolderTree(null)}</div>
+      </div>
+      <div class="ed-center">
+        <div class="ed-center-toolbar">
+          ${Object.entries(BM).map(([type,m])=>`<button class="chip" onclick="${S.studioSelPad?`addEdBlock('${type}')`:`showToast('Selecteer eerst een MathPad','info')`}">${m.icon||''} ${m.label}</button>`).join('')}
+        </div>
+        <div class="ed-body">
+          ${!S.studioSelPad
+            ?`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--t3);text-align:center;padding:60px 20px"><div style="font-size:28px;margin-bottom:12px;opacity:.4">✏️</div><div style="font-size:15px;font-weight:600;color:var(--t2)">Selecteer een MathPad</div><div style="font-size:13px;margin-top:5px">Kies een MathPad in de mappenstructuur of maak een nieuwe aan.</div></div>`
+            :`<input class="pad-title-inp" value="${esc(pad?.title||'')}" oninput="updatePadTitle(this.value)" placeholder="Titel...">
+              <div class="pad-meta-row">${blocks.length} blokken · ${FOLDERS.find(f=>f.id===pad?.folderId)?.name||''} · ${pad?.published?'<span style="color:var(--ok);font-weight:700">Gepubliceerd</span>':'<span style="color:var(--wn)">Concept</span>'}</div>
+              ${blocks.length===0?`<div style="padding:32px;border:2px dashed var(--bdr);border-radius:var(--r);text-align:center;color:var(--t3);font-size:13px">Gebruik de knoppen hierboven om blokken toe te voegen.</div>`:blocks.map(b=>renderEdBlock(b)).join('')}`
+          }
+        </div>
+      </div>
+      ${S.studioSelPad?`<div class="ed-right">
+        <div class="rp-hdr">Blokken <span style="background:#f1f5f9;color:var(--t3);border-radius:8px;padding:1px 6px;font-size:10.5px">${blocks.length}</span></div>
+        <div class="rp-body">
+          ${blocks.length===0?`<div class="empty-s">Voeg blokken toe via de toolbar.</div>`
+          :blocks.map((b,i)=>{const m=BM[b.type]||BM.THEORY;const isSel=S.studioSelBlock===b.id;
+            return`<div class="rp-item${isSel?' on':''}" id="rp-${b.id}" onclick="selectEdBlock('${b.id}')">
+              <span class="grip">${ic('grip',12)}</span>
+              <div class="rp-dot" style="background:${m.dot}"></div>
+              <div class="rp-info"><div class="rp-type">${m.label}</div><div class="rp-title">${b.title}</div></div>
+              <div class="rp-acts">
+                <button class="btn bg_ bxs" onclick="event.stopPropagation();moveEdBlock('${b.id}',-1)" ${i===0?'disabled':''} title="Omhoog">${ic('up',11)}</button>
+                <button class="btn bg_ bxs" onclick="event.stopPropagation();moveEdBlock('${b.id}',1)" ${i===blocks.length-1?'disabled':''} title="Omlaag">${ic('dn',11)}</button>
+                <button class="btn bg_ bxs" onclick="event.stopPropagation();dupEdBlock('${b.id}')" title="Dupliceer">${ic('copy',11)}</button>
+                <button class="btn bg_ bxs" style="color:var(--er)" onclick="event.stopPropagation();deleteEdBlock('${b.id}')" title="Verwijder">${ic('trash',11)}</button>
+              </div>
+            </div>`;}).join('')}
+        </div>
+        <div class="rp-count">${blocks.length} blokken totaal</div>
+        <div class="rp-foot"><button class="btn bp bsm" style="width:100%;justify-content:center" onclick="savePad(true)">🚀 Publiceer MathPad</button></div>
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderFolderTree(parentId){
+  return FOLDERS.filter(f=>f.parentId===parentId).map(f=>{
+    const exp=S.folderExp.has(f.id);const pads=PADS.filter(p=>p.folderId===f.id);
+    const hasChildren=FOLDERS.some(sf=>sf.parentId===f.id)||pads.length>0;
+    return`<div><div class="f-row" onclick="toggleFolder('${f.id}')">
+      <span class="f-chev${exp?' open':''}">▶</span>${ic('folder',13,exp?'#f59e0b':'var(--t3)')}<span style="flex:1;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.name)}</span>
+      <div class="f-actions" onclick="event.stopPropagation()">
+        <button style="background:none;border:none;cursor:pointer;padding:1px 3px;display:flex;color:var(--t3)" title="Toevoegen" onclick="upd({modal:{type:'studio-new',folderId:'${f.id}'}})">${ic('plus',10)}</button>
+        <button style="background:none;border:none;cursor:pointer;padding:1px 3px;display:flex;color:var(--t3)" title="Hernoemen" onclick="renameFolder('${f.id}','${esc(f.name)}')">${ic('pencil',10)}</button>
+        <button style="background:none;border:none;cursor:pointer;padding:1px 3px;display:flex;color:var(--t3)" title="Verwijder map" onclick="deleteFolder('${f.id}',${hasChildren})">${ic('trash',10)}</button>
+      </div>
+    </div>
+    ${exp?`<div class="f-children">
+      ${pads.map(pad=>`<div class="mp-row${S.studioSelPad===pad.id?' on':''}" onclick="openStudioPad('${pad.id}')">
+        <div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0">${ic('file',11,'var(--t3)')}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px">${esc(pad.title)}</span></div>
+        <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
+          <span class="f-actions" style="gap:1px;margin-left:0" onclick="event.stopPropagation()">
+            <button style="background:none;border:none;cursor:pointer;padding:2px 3px;display:flex;color:var(--t3);border-radius:4px" title="Verplaatsen naar map" onclick="upd({modal:{type:'move-pad',padId:'${pad.id}'}})">${ic('folder',11)}</button>
+            <button style="background:none;border:none;cursor:pointer;padding:2px 3px;display:flex;color:var(--t3);border-radius:4px" title="Dupliceren" onclick="dupPad('${pad.id}')">${ic('copy',11)}</button>
+            <button style="background:none;border:none;cursor:pointer;padding:2px 3px;display:flex;color:var(--er);border-radius:4px" title="Verwijderen" onclick="deletePad('${pad.id}')">${ic('trash',11)}</button>
+          </span>
+          <span style="background:${pad.published?'#dcfce7':'#fffbeb'};color:${pad.published?'#166534':'#92400e'};padding:1px 5px;border-radius:8px;font-size:9.5px;font-weight:700;flex-shrink:0">${pad.published?'✓':'●'}</span>
+        </div>
+      </div>`).join('')}
+      ${renderFolderTree(f.id)}
+    </div>`:''}
+    </div>`;
+  }).join('');
+}
+function toggleFolder(id){const e=new Set(S.folderExp);e.has(id)?e.delete(id):e.add(id);upd({folderExp:e});}
+function renameFolder(id,cur){const n=prompt('Nieuwe naam:',cur);if(n){const f=FOLDERS.find(fl=>fl.id===id);if(f)f.name=n;upd({});showToast('Map hernoemd','ok');}}
+function deleteFolder(id,hasChildren){
+  if(hasChildren&&!confirm('Deze map bevat nog inhoud. Toch verwijderen? (inhoud blijft bewaard)'))return;
+  const idx=FOLDERS.findIndex(f=>f.id===id);if(idx>=0){
+    // verplaats pads naar root
+    PADS.filter(p=>p.folderId===id).forEach(p=>p.folderId=null);
+    // verplaats submappen naar root
+    FOLDERS.filter(f=>f.parentId===id).forEach(f=>f.parentId=null);
+    FOLDERS.splice(idx,1);
+  }
+  upd({});showToast('Map verwijderd','info');
+}
+function dupPad(id){
+  const src=PADS.find(p=>p.id===id);if(!src)return;
+  const newId='mp-'+Date.now();
+  PADS.push({...src,id:newId,title:src.title+' (kopie)',published:false,classIds:[]});
+  EDIT_BLOCKS[newId]=JSON.parse(JSON.stringify(EDIT_BLOCKS[id]||[]));
+  const e=new Set(S.folderExp);if(src.folderId)e.add(src.folderId);
+  upd({folderExp:e});showToast('MathPad gedupliceerd','ok');
+}
+function deletePad(id){
+  if(!confirm('MathPad verwijderen?'))return;
+  const idx=PADS.findIndex(p=>p.id===id);if(idx>=0)PADS.splice(idx,1);
+  delete EDIT_BLOCKS[id];
+  const sel=S.studioSelPad===id?null:S.studioSelPad;
+  upd({studioSelPad:sel,editBlocks:sel?S.editBlocks:null});showToast('MathPad verwijderd','info');
+}
+function addFolder(){const n=prompt('Naam nieuwe hoofdmap:','Nieuwe map');if(!n)return;const id='f-'+Date.now();FOLDERS.push({id,name:n,parentId:null});const e=new Set(S.folderExp);e.add(id);upd({folderExp:e});showToast('Hoofdmap aangemaakt','ok');}
+function addSubFolder(parentId,name){
+  const n=name||prompt(`Submap:`, 'Nieuwe submap');
+  if(!n)return;
+  const id='f-'+Date.now();
+  FOLDERS.push({id,name:n,parentId});
+  const e=new Set(S.folderExp);e.add(parentId);e.add(id);
+  upd({folderExp:e});showToast('Submap aangemaakt','ok');
+}
+function addPad(folderId,name){
+  const n=name||prompt('Naam MathPad:','Nieuwe MathPad');if(!n)return;
+  const targetFolder=folderId||(PADS.find(p=>p.id===S.studioSelPad)?.folderId)||FOLDERS[0]?.id||null;
+  const id='mp-'+Date.now();
+  PADS.push({id,title:n,folderId:targetFolder,published:false,classIds:[]});
+  EDIT_BLOCKS[id]=[];
+  if(targetFolder){const e=new Set(S.folderExp);e.add(targetFolder);S.folderExp=e;}
+  openStudioPad(id);showToast('MathPad aangemaakt!','ok');
+}
+function openStudioPad(id){const blocks=JSON.parse(JSON.stringify(EDIT_BLOCKS[id]||[]));upd({studioSelPad:id,editBlocks:blocks,studioSelBlock:null,isDirty:false});}
+function updatePadTitle(val){const pad=PADS.find(p=>p.id===S.studioSelPad);if(pad)pad.title=val;S.isDirty=true;}
+function savePad(publish){const pad=PADS.find(p=>p.id===S.studioSelPad);if(!pad)return;if(publish)pad.published=true;if(S.editBlocks)EDIT_BLOCKS[S.studioSelPad]=S.editBlocks;upd({isDirty:false,isSaving:false});showToast(publish?'MathPad gepubliceerd!':'Opgeslagen!','ok');}
+function selectEdBlock(id){upd({studioSelBlock:S.studioSelBlock===id?null:id});}
+function addEdBlock(type){
+  if(!S.studioSelPad){showToast('Selecteer eerst een MathPad','info');return;}
+  const blocks=getEditBlocks();const nb={id:'blk-'+Date.now(),type,order:blocks.length,title:BM[type].label+' blok',content:DEFAULT_CONTENT[type]()};
+  const newBlocks=[...blocks,nb];if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=newBlocks;
+  upd({editBlocks:newBlocks,studioSelBlock:nb.id,isDirty:true});showToast(BM[type].label+' blok toegevoegd','ok');
+  setTimeout(()=>{document.getElementById('bi-'+nb.id)?.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
+}
+function deleteEdBlock(id){const blocks=getEditBlocks().filter(b=>b.id!==id).map((b,i)=>({...b,order:i}));if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;upd({editBlocks:blocks,studioSelBlock:S.studioSelBlock===id?null:S.studioSelBlock,isDirty:true});showToast('Blok verwijderd','info');}
+function dupEdBlock(id){const blocks=getEditBlocks();const idx=blocks.findIndex(b=>b.id===id);if(idx<0)return;const copy={...JSON.parse(JSON.stringify(blocks[idx])),id:'blk-'+Date.now(),title:blocks[idx].title+' (kopie)',order:blocks.length};const nb=[...blocks.slice(0,idx+1),copy,...blocks.slice(idx+1)].map((b,i)=>({...b,order:i}));if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=nb;upd({editBlocks:nb,studioSelBlock:copy.id,isDirty:true});showToast('Blok gedupliceerd','ok');}
+function moveEdBlock(id,dir){const blocks=[...getEditBlocks()].sort((a,b)=>a.order-b.order);const idx=blocks.findIndex(b=>b.id===id);const j=idx+dir;if(j<0||j>=blocks.length)return;const tmp=blocks[idx].order;blocks[idx].order=blocks[j].order;blocks[j].order=tmp;const nb=[...blocks];if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=nb;upd({editBlocks:nb,isDirty:true});}
+function updateEdContent(id,field,val){const blocks=getEditBlocks().map(b=>b.id!==id?b:{...b,content:{...b.content,[field]:typeof val==='number'?val:val}});S.editBlocks=blocks;S.isDirty=true;if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;const prev=document.getElementById('lxp-'+id);if(prev&&(field==='text'||field==='q'||field==='problem'||field==='solution'))prev.innerHTML=LX.text(val);}
+function updateEdBlockTitle(id,val){const blocks=getEditBlocks().map(b=>b.id!==id?b:{...b,title:val});S.editBlocks=blocks;S.isDirty=true;if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;const rpt=document.querySelector(`#rp-${id} .rp-title`);if(rpt)rpt.textContent=val;}
+function updateMCOpt(id,idx,val){const blocks=getEditBlocks().map(b=>{if(b.id!==id)return b;const opts=[...(b.content.opts||[])];opts[idx]=val;return{...b,content:{...b.content,opts}};});S.editBlocks=blocks;S.isDirty=true;if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;}
+function setMCCorrect(id,idx){const blocks=getEditBlocks().map(b=>b.id!==id?b:{...b,content:{...b.content,ci:idx}});S.editBlocks=blocks;S.isDirty=true;if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;document.querySelectorAll(`#bi-${id} .mc-radio`).forEach((r,i)=>{r.className='mc-radio'+(i===idx?' ok':'');r.innerHTML=i===idx?ic('check',10,'#fff'):'';});}
+function updatePair(id,idx,side,val){const blocks=getEditBlocks().map(b=>{if(b.id!==id)return b;const pairs=[...(b.content.pairs||[])];if(pairs[idx])pairs[idx]={...pairs[idx],[side]:val};return{...b,content:{...b.content,pairs}};});S.editBlocks=blocks;S.isDirty=true;if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;}
+function addPair(id){const blocks=getEditBlocks().map(b=>b.id!==id?b:{...b,content:{...b.content,pairs:[...(b.content.pairs||[]),{l:'',r:''}]}});S.editBlocks=blocks;S.isDirty=true;if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;upd({});}
+function removePair(id,idx){const blocks=getEditBlocks().map(b=>{if(b.id!==id)return b;const pairs=[...(b.content.pairs||[])];pairs.splice(idx,1);return{...b,content:{...b.content,pairs}};});S.editBlocks=blocks;S.isDirty=true;if(EDIT_BLOCKS[S.studioSelPad])EDIT_BLOCKS[S.studioSelPad]=blocks;upd({});}
+
+function renderEdBlock(block){
+  const m=BM[block.type]||BM.THEORY;const c=block.content||{};const isSel=S.studioSelBlock===block.id;
+  let preview='';
+  if(block.type==='THEORY')preview=`<div class="blk-prev">${LX.text(c.text||'')}</div>`;
+  else if(block.type==='EXAMPLE')preview=`<div class="blk-prev">${LX.text(c.problem||'')}</div>`;
+  else if(block.type==='FILL_IN')preview=`<div class="blk-prev">${LX.text(c.q||'')}<div style="margin-top:8px;display:flex;align-items:center;gap:6px">${c.prefix?`<span style="font-family:monospace;font-weight:700;font-size:13px">${c.prefix}</span>`:''}<div style="border:1.5px dashed #94a3b8;border-radius:5px;padding:4px 12px;font-size:12px;color:#94a3b8">Antwoord...</div></div></div>`;
+  else if(block.type==='MULTIPLE_CHOICE')preview=`<div class="blk-prev">${LX.text(c.q||'')}<div style="margin-top:8px">${(c.opts||[]).map((o,i)=>`<div style="padding:5px 10px;border:1.5px solid ${i===c.ci?'var(--ok)':'var(--bdr)'};border-radius:6px;font-size:12.5px;background:${i===c.ci?'var(--ok-b)':'rgba(255,255,255,.6)'};color:${i===c.ci?'var(--ok)':'var(--t2)'};margin-bottom:4px;display:flex;align-items:center;gap:6px"><span style="font-size:10px;font-weight:700;min-width:14px">${['A','B','C','D'][i]}.</span>${LX.text(o)}</div>`).join('')}</div></div>`;
+  else if(block.type==='MATCHING')preview=`<div class="blk-prev">${LX.text(c.q||'')}<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px">${(c.pairs||[]).map(p=>`<div style="display:contents"><div style="padding:5px 9px;border:1px solid var(--bdr);border-radius:5px;font-size:12.5px;background:rgba(255,255,255,.6)">${LX.text(p.l)}</div><div style="padding:5px 9px;border:1px solid var(--bdr);border-radius:5px;font-size:12.5px;background:rgba(255,255,255,.6)">${LX.text(p.r)}</div></div>`).join('')}</div></div>`;
+  else if(block.type==='OPEN')preview=`<div class="blk-prev">${LX.text(c.q||'')}<div style="margin-top:8px;border:1.5px dashed var(--bdr);border-radius:6px;padding:9px;font-size:12px;color:var(--t3)">Vrij tekstantwoord (min. ${c.minWords||20} woorden)...</div></div>`;
+  const form=isSel?renderEdForm(block):'';
+  return`<div class="blk btype-${block.type}${isSel?' selected':''}" id="bi-${block.id}" onclick="selectEdBlock('${block.id}')">
+    <div class="blk-hdr">
+      ${m.icon?`<span style="font-size:18px">${m.icon}</span>`:''}
+      <div style="flex:1;min-width:0"><div class="blk-lbl lbl-${block.type}">${m.label}</div><div class="blk-title">${esc(block.title)}</div></div>
+      <div class="blk-actions">
+        <button class="btn bg_ bxs" onclick="event.stopPropagation();moveEdBlock('${block.id}',-1)" title="Omhoog">${ic('up',11)}</button>
+        <button class="btn bg_ bxs" onclick="event.stopPropagation();moveEdBlock('${block.id}',1)" title="Omlaag">${ic('dn',11)}</button>
+        <button class="btn bg_ bxs" onclick="event.stopPropagation();dupEdBlock('${block.id}')" title="Kopieer">${ic('copy',11)}</button>
+        <button class="btn bg_ bxs" style="color:var(--er)" onclick="event.stopPropagation();deleteEdBlock('${block.id}')" title="Verwijder">${ic('trash',11)}</button>
+      </div>
+    </div>
+    ${preview}${form}
+  </div>`;
+}
+
+function renderEdForm(block){
+  const c=block.content||{};let fields='';
+  if(block.type==='THEORY'){fields=`<div class="fg"><label class="bfl">Inhoud <span style="color:var(--t3);font-weight:400;text-transform:none">($inline$ en $$blok$$)</span></label><textarea class="bfi bfta" rows="5" oninput="updateEdContent('${block.id}','text',this.value)">${esc(c.text||'')}</textarea><div class="lx-hint">${ic('eye',11,'var(--t3)')} Live LaTeX-voorbeeld</div><div class="lx-prev-box" id="lxp-${block.id}">${LX.text(c.text||'Typ formules hierboven...')}</div></div>`;}
+  else if(block.type==='EXAMPLE'){fields=`<div class="fg"><label class="bfl">Opgave</label><textarea class="bfi bfta" rows="2" oninput="updateEdContent('${block.id}','problem',this.value)">${esc(c.problem||'')}</textarea><div class="lx-prev-box" id="lxp-${block.id}" style="margin-top:5px">${LX.text(c.problem||'')}</div></div><div class="fg"><label class="bfl">Uitwerking</label><textarea class="bfi bfta" rows="4" oninput="updateEdContent('${block.id}','solution',this.value)">${esc(c.solution||'')}</textarea></div>`;}
+  else if(block.type==='FILL_IN'){fields=`<div class="fg"><label class="bfl">Vraag</label><textarea class="bfi bfta" rows="2" oninput="updateEdContent('${block.id}','q',this.value)">${esc(c.q||'')}</textarea><div class="lx-prev-box" id="lxp-${block.id}" style="margin-top:5px">${LX.text(c.q||'')}</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label class="bfl">Prefix</label><input class="bfi" value="${esc(c.prefix||'')}" oninput="updateEdContent('${block.id}','prefix',this.value)" placeholder="bv. x ="></div><div class="fg"><label class="bfl">Correct antwoord</label><input class="bfi" value="${esc(c.ca||'')}" oninput="updateEdContent('${block.id}','ca',this.value)"></div></div><div class="fg"><label class="bfl">Hint</label><input class="bfi" value="${esc(c.hint||'')}" oninput="updateEdContent('${block.id}','hint',this.value)" placeholder="Optionele hint..."></div>`;}
+  else if(block.type==='MULTIPLE_CHOICE'){const opts=(c.opts||['','','','']).map((opt,i)=>`<div class="mc-opt-row"><div class="mc-radio${c.ci===i?' ok':''}" onclick="event.stopPropagation();setMCCorrect('${block.id}',${i})">${c.ci===i?ic('check',10,'#fff'):''}</div><input class="bfi" style="flex:1" value="${esc(opt)}" oninput="updateMCOpt('${block.id}',${i},this.value)" placeholder="Optie ${String.fromCharCode(65+i)}"></div>`).join('');fields=`<div class="fg"><label class="bfl">Vraag</label><textarea class="bfi bfta" rows="2" oninput="updateEdContent('${block.id}','q',this.value)">${esc(c.q||'')}</textarea><div class="lx-prev-box" id="lxp-${block.id}" style="margin-top:5px">${LX.text(c.q||'')}</div></div><div class="fg"><label class="bfl">Opties (klik cirkel = correct)</label>${opts}</div><div class="fg"><label class="bfl">Uitleg</label><input class="bfi" value="${esc(c.exp||'')}" oninput="updateEdContent('${block.id}','exp',this.value)" placeholder="Uitleg..."></div>`;}
+  else if(block.type==='MATCHING'){const pairs=(c.pairs||[]).map((p,i)=>`<div class="pair-row"><input class="bfi" style="flex:1" value="${esc(p.l||'')}" oninput="updatePair('${block.id}',${i},'l',this.value)" placeholder="Kolom A"><span class="pair-sep">↔</span><input class="bfi" style="flex:1" value="${esc(p.r||'')}" oninput="updatePair('${block.id}',${i},'r',this.value)" placeholder="Kolom B"><button class="remove-pair" onclick="removePair('${block.id}',${i})">×</button></div>`).join('');fields=`<div class="fg"><label class="bfl">Instructie</label><input class="bfi" value="${esc(c.q||'')}" oninput="updateEdContent('${block.id}','q',this.value)"></div><div class="fg"><label class="bfl">Koppels</label>${pairs}<button class="btn bs bsm" style="margin-top:6px" onclick="addPair('${block.id}')">+ Koppel toevoegen</button></div>`;}
+  else if(block.type==='OPEN'){fields=`<div class="fg"><label class="bfl">Vraag</label><textarea class="bfi bfta" rows="3" oninput="updateEdContent('${block.id}','q',this.value)">${esc(c.q||'')}</textarea><div class="lx-prev-box" id="lxp-${block.id}" style="margin-top:5px">${LX.text(c.q||'')}</div></div><div class="fg"><label class="bfl">Min. woorden</label><input type="number" class="bfi" style="max-width:100px" value="${c.minWords||20}" min="0" oninput="updateEdContent('${block.id}','minWords',parseInt(this.value)||0)"></div>`;}
+  return`<div class="blk-form" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bdr)">
+      <span style="font-size:18px">${BM[block.type]?.icon||''}</span>
+      <div><div class="blk-lbl lbl-${block.type}">${BM[block.type]?.label}</div><div style="font-size:13px;font-weight:800;color:var(--t)">Blok bewerken</div></div>
+    </div>
+    <div class="fg"><label class="bfl">Bloktitel</label><input class="bfi" value="${esc(block.title)}" oninput="updateEdBlockTitle('${block.id}',this.value)" placeholder="Titel..."></div>
+    ${fields}
+  </div>`;
+}
+
+// Helper: is een pad verlopen voor de huidige leerling?
+function isPadExpiredForStudent(padId){
+  const u=S.user;if(!u)return false;
+  const assign=getAssign(padId,u.id)||getAssign(padId,u.classId);
+  return !!(assign?.to&&assign.to<today());
+}
+
+function studentDashHTML(){
+  const u=S.user;const cls=CLASSES[u.classId];
+  const classPads=PADS.filter(p=>p.published&&(p.classIds||[]).includes(u.classId));
+  const indivPads=PADS.filter(p=>p.published&&!(p.classIds||[]).includes(u.classId)
+    &&(S.studentPadAccess||{})['st-'+u.id+'-pad-'+p.id]===true);
+  const allPads=[...classPads,...indivPads];
+  const activePads=allPads.filter(p=>!isPadExpiredForStudent(p.id));
+  const expiredPads=allPads.filter(p=>isPadExpiredForStudent(p.id));
+
+  const padCard=(pad,expired=false)=>{
+    const blocks=EDIT_BLOCKS[pad.id]||[];const done=blocks.filter(b=>S.sProg[b.id]?.done).length;
+    const total=blocks.length;const pct=total?Math.round(done/total*100):0;const isDone=done===total&&total>0;const isStarted=done>0&&!isDone;
+    const cardBg=expired?'#f8fafc':'var(--w)';const cardBdr=expired?'var(--bdr)':'var(--bdr)';
+    return`<div class="pad-card" style="background:${cardBg};opacity:${expired?.8:1}" onclick="upd({currentPad:'${pad.id}',screen:'path'})">
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px">
+        <span class="bdg bi" style="font-size:10.5px">${FOLDERS.find(f=>f.id===pad.folderId)?.name||'Algebra'}</span>
+        ${expired?'<span class="bdg bsl" style="font-size:10.5px">📅 Afgelopen</span>':isDone?'<span class="bdg bgreen" style="font-size:10.5px">✅ Voltooid</span>':isStarted?'<span class="bdg bsk" style="font-size:10.5px">▶ Bezig</span>':''}
+      </div>
+      <div style="font-size:14px;font-weight:700;color:var(--t);margin-bottom:4px">${pad.title}</div>
+      <div style="font-size:12px;color:var(--t3);margin-bottom:12px">${total} blokken</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:4px"><span>${done}/${total} voltooid</span><span>${pct}%</span></div>
+      <div class="pb" style="height:5px"><div class="pf" style="width:${pct}%;background:${isDone?'var(--ok)':expired?'var(--t3)':'var(--p)'}"></div></div>
+      <button style="margin-top:12px;width:100%;padding:7px;border-radius:var(--rs);border:none;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;background:${expired?'#f1f5f9':isDone?'#f1f5f9':isStarted?'var(--pl)':'var(--p)'};color:${expired?'var(--t3)':isDone?'var(--t2)':isStarted?'var(--p)':'#fff'}" onclick="event.stopPropagation();upd({currentPad:'${pad.id}',screen:'path'})">${expired?'👁 Bekijken':isDone?'Herbekijken':isStarted?'▶ Verderzetten':'▶ Starten'}</button>
+    </div>`;
+  };
+
+  return`<div style="height:100vh;overflow-y:auto">
+    <div class="s-hdr">
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;background:var(--p);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:11px">M</div><span style="font-size:14px;font-weight:800;color:var(--t)">MathPad</span></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${cls?`<span class="cls-badge" style="background:${cls.color}15;color:${cls.color};border:1px solid ${cls.color}25">${cls.name}</span>`:''}
+        ${av(u.name,u.color,26)}<span style="font-size:12.5px;color:var(--t2);font-weight:500">${u.name}</span>
+        <button class="btn bs bsm" onclick="upd({screen:'auth',user:null})">Uitloggen</button>
+      </div>
+    </div>
+    <div class="dash-body">
+      <div style="margin-bottom:18px"><div style="font-size:19px;font-weight:800;color:var(--t)">Welkom, ${u.name.split(' ')[0]}! 👋</div><div style="font-size:13px;color:var(--t2);margin-top:2px">${activePads.length} actieve MathPads voor klas ${cls?.name||''}.</div></div>
+      ${activePads.length>0?`<div class="pads-grid">${activePads.map(p=>padCard(p,false)).join('')}</div>`:'<div class="empty-s">Geen actieve leerpaden op dit moment.</div>'}
+      ${expiredPads.length>0?`<div style="margin-top:28px"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:12px">Afgelopen leerpaden</div><div class="pads-grid">${expiredPads.map(p=>padCard(p,true)).join('')}</div></div>`:''}
+    </div>
+  </div>`;
+}
+
+function studentPathHTML(){
+  const pad=PADS.find(p=>p.id===S.currentPad);if(!pad){return studentDashHTML();}
+  const blocks=(EDIT_BLOCKS[S.currentPad]||[]).sort((a,b)=>a.order-b.order);
+  const done=blocks.filter(b=>S.sProg[b.id]?.done).length;const total=blocks.length;const pct=total?Math.round(done/total*100):0;
+  const expired=isPadExpiredForStudent(S.currentPad);
+  return`<div style="height:100vh;overflow-y:auto">
+    <div class="s-hdr">
+      <button class="btn bs bsm" onclick="upd({screen:'dash'})">← Terug</button>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px">
+        <span style="font-size:13px;font-weight:700;color:var(--t)">${pad.title}</span>
+        <span class="bdg bi" style="font-size:10.5px">${FOLDERS.find(f=>f.id===pad.folderId)?.name||'Algebra'}</span>
+        ${expired?`<span class="bdg bsl" style="font-size:10.5px">📅 Afgelopen</span>`:''}
+      </div>
+      <span style="font-size:12px;color:var(--t3)">${S.user?.name?.split(' ')[0]}</span>
+    </div>
+    ${!expired?`<div class="pbi-bar"><div class="pbi-inner">
+      <span style="font-size:13px;font-weight:700;color:var(--t);flex-shrink:0;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pad.title}</span>
+      <div class="pb" style="height:7px"><div class="pf" id="pp-fill" style="width:${pct}%;background:${pct===100?'var(--ok)':'var(--p)'}"></div></div>
+      <span style="font-size:12px;color:var(--t3);min-width:42px;text-align:right" id="pp-lbl">${done}/${total}</span>
+    </div></div>`:''}
+    <div class="path-body">
+      ${expired?`<div style="background:#f1f5f9;border:1px solid var(--bdr);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--t2)">📅 <span>Dit leerpad is <strong>afgelopen</strong>. Je kunt de inhoud bekijken en je ingediende antwoorden terugvinden, maar niets meer indienen.</span></div>`:''}
+      ${!expired&&done===total&&total>0?`<div class="complete-banner"><div style="font-size:38px;margin-bottom:8px">🏆</div><div style="font-size:18px;font-weight:800;margin-bottom:4px">MathPad voltooid!</div><div style="opacity:.85;font-size:13px">Uitstekend werk!</div></div>`:''}
+      ${blocks.map(b=>renderStudentBlock(b,expired)).join('')}
+    </div>
+  </div>`;
+}
+
+function sRefreshProgress(){
+  const blocks=(EDIT_BLOCKS[S.currentPad]||[]);const done=blocks.filter(b=>S.sProg[b.id]?.done).length;const total=blocks.length;const pct=total?Math.round(done/total*100):0;
+  const f=document.getElementById('pp-fill');const l=document.getElementById('pp-lbl');
+  if(f){f.style.width=pct+'%';f.style.background=pct===100?'var(--ok)':'var(--p)';}if(l)l.textContent=done+'/'+total;
+  if(pct===100){const area=document.querySelector('.path-body');if(area&&!area.querySelector('.complete-banner')){const b=document.createElement('div');b.className='complete-banner';b.style.marginBottom='12px';b.innerHTML='<div style="font-size:38px;margin-bottom:8px">🏆</div><div style="font-size:18px;font-weight:800;margin-bottom:4px">MathPad voltooid!</div><div style="opacity:.85;font-size:13px">Uitstekend werk!</div>';area.insertBefore(b,area.firstChild);}}
+}
+
+const SBM={THEORY:{cls:'sb-th',lcls:'lbl-THEORY'},EXAMPLE:{cls:'sb-ex',lcls:'lbl-EXAMPLE'},FILL_IN:{cls:'sb-fi',lcls:'lbl-FILL_IN'},MULTIPLE_CHOICE:{cls:'sb-mc',lcls:'lbl-MULTIPLE_CHOICE'},MATCHING:{cls:'sb-ma',lcls:'lbl-MATCHING'},OPEN:{cls:'sb-op',lcls:'lbl-OPEN'}};
+
+function renderStudentBlock(block, readOnly=false){
+  const m=SBM[block.type]||SBM.THEORY;const em=BM[block.type]||BM.THEORY;
+  const prog=S.sProg[block.id];const done=prog?.done;const c=block.content||{};
+  const checkIc=done&&!readOnly?`<div style="color:var(--ok);flex-shrink:0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg></div>`:'';
+  let inner='';
+  if(block.type==='THEORY'){
+    inner=`<div class="cont-box">${LX.text(c.text||'')} </div>`;
+    if(!readOnly) inner+=done?'<div class="fb-ok" style="margin-top:9px;font-size:13px">✅ Gelezen</div>':`<button class="btn bp bsm" style="margin-top:10px" onclick="sDone('${block.id}')">✓ Begrepen, verder</button>`;
+  }
+  else if(block.type==='EXAMPLE'){
+    const sh=S.sExSt[block.id]||done||readOnly;
+    inner=`<div class="cont-box" style="margin-bottom:9px">${LX.text(c.problem||'')} </div>`;
+    if(sh){inner+=`<div style="margin-bottom:9px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ok);margin-bottom:5px">Uitwerking</div><div class="code-box">${LX.text(c.solution||'')} </div></div>`;if(!readOnly)inner+=done?'<div class="fb-ok" style="font-size:13px">✅ Bekeken</div>':`<button class="btn bp bsm" style="background:#059669" onclick="sDone('${block.id}')">✓ Begrepen</button>`;
+    }else{inner+=`<button class="btn bs bsm" style="border-color:#a7f3d0" onclick="sShowEx('${block.id}')">💡 Toon uitwerking</button>`;}
+  }
+  else if(block.type==='FILL_IN'){
+    const st=S.sFiErr[block.id]||{err:false,hint:false,attempts:0,failed:false};const MAX_ATT=3;
+    inner=`<div class="cont-box" style="margin-bottom:9px">${LX.text(c.q||'')} </div>`;
+    if(done||readOnly){
+      if(prog?.ans&&!st.failed){inner+=`<div class="fb-ok">✅ Correct! ${c.prefix?LX.text(c.prefix)+' ':''}<strong>${prog.ans}</strong></div>`;}
+      else{if(prog?.ans)inner+=`<div class="fb-er" style="border-radius:var(--rs);padding:9px 12px">❌ Jouw antwoord: <strong>${prog.ans}</strong></div>`;inner+=`<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:var(--rs);padding:9px 12px;font-size:13px;color:#0c4a6e">✏️ Correct antwoord: ${c.prefix?LX.text(c.prefix)+' ':''}<strong>${c.ca}</strong></div>`;}
+    }else{
+      if(st.err){const left=MAX_ATT-st.attempts;inner+=`<div class="fb-er">❌ Niet correct.${left>0?` Nog <strong>${left}</strong> poging${left!==1?'en':''}`:''}. ${c.hint&&!st.hint&&st.attempts<MAX_ATT?`<button class="btn bg_ bxs" style="margin-left:7px" onclick="sShowHint('${block.id}')">Hint</button>`:''}${st.hint&&c.hint?`<div class="hint-box" style="margin-top:5px">💡 ${c.hint}</div>`:''}</div>`;}
+      inner+=`<div style="display:flex;align-items:center;gap:7px">${c.prefix?`<span style="font-family:monospace;font-weight:700;font-size:13.5px">${LX.text(c.prefix)}</span>`:''}<input class="fi" id="sfi-${block.id}" placeholder="Antwoord..." style="max-width:150px;font-family:monospace;font-size:14px" onkeydown="if(event.key==='Enter')sCheckFI('${block.id}')">${c.suffix?`<span style="font-size:13.5px;color:var(--t2)">${LX.text(c.suffix)}</span>`:''}<button class="btn bp bsm" onclick="sCheckFI('${block.id}')">Controleer</button></div>`;
+    }
+  }
+  else if(block.type==='MULTIPLE_CHOICE'){
+    const st=S.sMcSt[block.id]||{sel:null,sub:false};const submitted=done||st.sub||readOnly;const letters=['A','B','C','D'];
+    inner=`<div class="cont-box" style="margin-bottom:9px">${LX.text(c.q||'')} </div>`;
+    inner+=(c.opts||[]).map((opt,i)=>{let cls='mc-opt';if(submitted){cls+=' mc-d';if(i===c.ci)cls+=' mc-ok';else if(st.sel===i)cls+=' mc-er';}else if(st.sel===i)cls+=' mc-sel';return`<button class="${cls}" onclick="${submitted?'':`sMCSel('${block.id}',${i})`}">${letters[i]||i}. ${LX.text(opt)}${submitted&&i===c.ci?' ✅':submitted&&st.sel===i?' ❌':''}</button>`;}).join('');
+    if(submitted&&c.exp)inner+=`<div class="fb-ok">${LX.text(c.exp)}</div>`;
+    if(!submitted)inner+=`<button class="btn bsm" style="background:#7c3aed;color:#fff;margin-top:8px" onclick="sMCSub('${block.id}',${c.ci})" ${st.sel===null?'disabled':''}>Bevestig antwoord</button>`;
+  }
+  else if(block.type==='MATCHING'){
+    if(!S.sMatchSt[block.id])S.sMatchSt[block.id]={shuffled:[...(c.pairs||[])].map(p=>p.r).sort(()=>Math.random()-.5),matches:{},selLeft:null,submitted:false,submitCount:0,failed:false};
+    const st=S.sMatchSt[block.id];const sub=done||st.submitted||readOnly;const numM=Object.keys(st.matches).length;const MAX_ATT=3;const selLeft=st.selLeft;
+    const leftItems=(c.pairs||[]).map((pair,i)=>{const isSelected=selLeft===i&&!sub;const matched=st.matches[i];const isOk=sub&&matched===pair.r;const isErr=sub&&matched&&matched!==pair.r;let border=isSelected?'2px solid #0284c7':isOk?'2px solid var(--ok)':isErr?'2px solid var(--er)':'2px solid var(--bdr)';let bg=isSelected?'#e0f2fe':isOk?'var(--ok-b)':isErr?'var(--er-b)':'rgba(255,255,255,.8)';return`<button style="width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:${border};background:${bg};cursor:${sub?'default':'pointer'};font-family:inherit;font-size:13px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:all .12s" onclick="${sub?'':`sMSelL('${block.id}',${i})`}"><span style="flex:1">${LX.text(pair.l)}</span><span style="font-size:14px;flex-shrink:0">${sub?(isOk?'✅':isErr?'❌':''): isSelected?'👆':''}</span></button>`;}).join('');
+    const rightItems=st.shuffled.map(val=>{const used=Object.values(st.matches).includes(val);const isTarget=selLeft!==null&&!sub&&!used;return`<button style="width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:2px solid ${isTarget?'#0284c7':used?'#d1d5db':'var(--bdr)'};background:${isTarget?'#e0f2fe':used?'#f9fafb':'rgba(255,255,255,.8)'};cursor:${sub||used?'default':'pointer'};font-family:inherit;font-size:13px;opacity:${used?.55:1};margin-bottom:6px;transition:all .12s" onclick="${sub||used?'':`sMSelR('${block.id}','${encodeURIComponent(val)}')`}">${LX.text(val)}${used?` <span style="font-size:10px;color:#94a3b8;margin-left:4px">(gekoppeld)</span>`:''}</button>`;}).join('');
+    const allOk=sub&&(c.pairs||[]).every((p,i)=>st.matches[i]===p.r);
+    const matchedPairs=Object.entries(st.matches).filter(([_,v])=>v).map(([idx,val])=>{const pair=(c.pairs||[])[parseInt(idx)];if(!pair)return'';const isOk=sub&&val===pair.r;const isErr=sub&&val!==pair.r;return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;background:${isOk?'var(--ok-b)':isErr?'var(--er-b)':'#f0f9ff'};border:1px solid ${isOk?'var(--ok-br)':isErr?'var(--er-br)':'#bae6fd'};margin-bottom:5px;font-size:13px"><span style="flex:1;text-align:right">${LX.text(pair.l)}</span><span style="font-size:18px;color:${isOk?'var(--ok)':isErr?'var(--er)':'#0284c7'}">→</span><span style="flex:1">${LX.text(val)}</span>${sub?`<span>${isOk?'✅':'❌'}</span>`:''}</div>`;}).join('');
+    inner=`<div class="cont-box" style="margin-bottom:10px;font-size:13px">${c.q||''}</div>${!sub&&selLeft===null?`<div style="font-size:12.5px;color:#0284c7;background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:8px 12px;margin-bottom:10px;font-weight:500">👆 Klik een item in <strong>Kolom A</strong>, daarna in <strong>Kolom B</strong>.</div>`:''} ${!sub&&selLeft!==null?`<div style="font-size:12.5px;color:#0284c7;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:7px;padding:8px 12px;margin-bottom:10px;font-weight:600">✔ Geselecteerd: ${LX.text((c.pairs||[])[selLeft]?.l||'')} — kies nu in Kolom B →</div>`:''}<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:${numM>0?'10px':'0'}"><div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0284c7;margin-bottom:7px;padding:4px 8px;background:#f0f9ff;border-radius:5px;display:inline-block">Kolom A</div>${leftItems}</div><div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7c3aed;margin-bottom:7px;padding:4px 8px;background:#f5f3ff;border-radius:5px;display:inline-block">Kolom B</div>${rightItems}</div></div>${numM>0&&!sub?`<div style="margin-bottom:10px">${matchedPairs}</div>`:''} ${sub?(allOk?'<div class="fb-ok">✅ Alle koppelingen zijn correct!</div>':`<div style="background:${st.failed?'var(--er-b)':'var(--wn-b)'};border:1px solid ${st.failed?'var(--er-br)':'var(--wn-br)'};border-radius:var(--rs);padding:10px 13px;font-size:13px;color:${st.failed?'var(--er)':'#92400e'}">${st.failed?'❌ Max. pogingen bereikt. ':'Niet correct. '}Juiste antwoorden:<br>${(c.pairs||[]).map(p=>`<div style="display:flex;align-items:center;gap:8px;margin-top:5px;padding:5px 8px;background:rgba(255,255,255,.5);border-radius:5px"><span style="flex:1;text-align:right;font-size:12.5px">${LX.text(p.l)}</span><span style="color:var(--ok);font-weight:700">→</span><span style="flex:1;font-size:12.5px">${LX.text(p.r)}</span></div>`).join('')}</div>`):`<button class="btn bsm" style="background:#0284c7;color:#fff" onclick="sMSub('${block.id}')" ${numM<(c.pairs||[]).length?'disabled':''}>Controleer (${numM}/${(c.pairs||[]).length})${st.submitCount>0?` — nog ${MAX_ATT-st.submitCount} poging${MAX_ATT-st.submitCount!==1?'en':''}`:''}  </button>`}`;
+  }
+  else if(block.type==='OPEN'){
+    const st=S.sOpenSt[block.id]||{txt:'',sub:false};const sub=done||st.sub;const wc=(st.txt||'').trim().split(/\s+/).filter(Boolean).length;const min=c.minWords||20;
+    inner=`<div class="cont-box" style="margin-bottom:9px">${LX.text(c.q||'')} </div><textarea class="open-ta" rows="4" placeholder="Schrijf hier jouw antwoord..." ${sub||readOnly?'disabled':''} oninput="sUpdOpen('${block.id}',this.value)">${esc(st.txt)}</textarea><div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px"><span style="font-size:11.5px;color:${wc>=min?'var(--ok)':'var(--t3)'}" id="swc-${block.id}">${wc}/${min} woorden</span>${sub||readOnly?'<div class="fb-ok" style="margin:0;padding:5px 11px;font-size:12px">✅ Ingediend</div>':`<button class="btn bsm" style="background:var(--er);color:#fff" id="sopen-btn-${block.id}" onclick="sSubOpen('${block.id}')" ${wc<min?'disabled':''}>Indienen</button>`}</div>`;
+  }
+  return`<div class="${m.cls} s-blk" id="sblk-${block.id}"><div class="s-blk-hdr">${em.icon?`<span style="font-size:18px">${em.icon}</span>`:''}<div style="flex:1;min-width:0"><div class="blk-lbl ${m.lcls}">${em.label}</div><div style="font-size:14px;font-weight:700;color:var(--t)">${block.title}</div></div>${checkIc}</div>${inner}</div>`;
+}
+function sDone(id){S.sProg[id]={done:true};sRefreshBlock(id);sRefreshProgress();}
+function sShowEx(id){S.sExSt[id]=true;sRefreshBlock(id);}
+function sShowHint(id){S.sFiErr[id]={...S.sFiErr[id]||{},hint:true};sRefreshBlock(id);}
+function sCheckFI(id){
+  const block=(EDIT_BLOCKS[S.currentPad]||[]).find(b=>b.id===id);if(!block)return;
+  const inp=document.getElementById('sfi-'+id);if(!inp)return;
+  const val=inp.value.trim();const ca=(block.content.ca||'').trim().toLowerCase();
+  const MAX=3;const cur=S.sFiErr[id]||{err:false,hint:false,attempts:0,failed:false};
+  if(val.toLowerCase()===ca){S.sProg[id]={done:true,ans:val};S.sFiErr[id]={...cur,err:false};sRefreshBlock(id);sRefreshProgress();showToast('Correct! 🎉','ok');}
+  else{const attempts=(cur.attempts||0)+1;if(attempts>=MAX){S.sFiErr[id]={...cur,err:true,attempts,failed:true};S.sProg[id]={done:true,ans:val,failed:true};sRefreshBlock(id);sRefreshProgress();showToast('❌ 3 pogingen gebruikt — correct antwoord getoond','info');}else{S.sFiErr[id]={...cur,err:true,attempts};sRefreshBlock(id);setTimeout(()=>document.getElementById('sfi-'+id)?.focus(),40);}}
+}
+function sMCSel(id,i){S.sMcSt[id]={...(S.sMcSt[id]||{}),sel:i};sRefreshBlock(id);}
+function sMCSub(id,ci){const st=S.sMcSt[id]||{sel:null};if(st.sel===null)return;S.sMcSt[id]={...st,sub:true};const ok=st.sel===ci;S.sProg[id]={done:true,ok};sRefreshBlock(id);sRefreshProgress();showToast(ok?'Correct! 🎉':'Niet correct — zie uitleg.',ok?'ok':'info');}
+function sMSelL(id,i){const st=S.sMatchSt[id]||{};S.sMatchSt[id]={...st,selLeft:st.selLeft===i?null:i};sRefreshBlock(id);}
+function sMSelR(id,encoded){const val=decodeURIComponent(encoded);const st=S.sMatchSt[id]||{matches:{},selLeft:null};if(st.selLeft===null)return;const nm={...st.matches};Object.keys(nm).forEach(k=>{if(nm[k]===val)delete nm[k];});nm[st.selLeft]=val;S.sMatchSt[id]={...st,matches:nm,selLeft:null};sRefreshBlock(id);}
+function sMSub(id){
+  const st=S.sMatchSt[id];if(!st)return;
+  const block=(EDIT_BLOCKS[S.currentPad]||[]).find(b=>b.id===id);
+  const pairs=block?.content?.pairs||[];const allOk=pairs.every((p,i)=>st.matches[i]===p.r);
+  const MAX=3;const submitCount=(st.submitCount||0)+1;
+  if(allOk){S.sMatchSt[id]={...st,submitted:true,submitCount};S.sProg[id]={done:true};sRefreshBlock(id);sRefreshProgress();showToast('Alle correct! ✅','ok');}
+  else if(submitCount>=MAX){S.sMatchSt[id]={...st,submitted:true,submitCount,failed:true};S.sProg[id]={done:true,failed:true};sRefreshBlock(id);sRefreshProgress();showToast('❌ 3 pogingen gebruikt — juiste antwoorden getoond','info');}
+  else{S.sMatchSt[id]={...st,submitCount,matches:{}};sRefreshBlock(id);showToast(`Niet correct. Nog ${MAX-submitCount} poging${MAX-submitCount!==1?'en':''} over.`,'info');}
+}
+function sUpdOpen(id,val){S.sOpenSt[id]={...S.sOpenSt[id]||{},txt:val};const block=(EDIT_BLOCKS[S.currentPad]||[]).find(b=>b.id===id);const min=block?.content?.minWords||20;const wc=val.trim().split(/\s+/).filter(Boolean).length;const wcel=document.getElementById('swc-'+id);const btn=document.getElementById('sopen-btn-'+id);if(wcel){wcel.textContent=wc+'/'+min+' woorden';wcel.style.color=wc>=min?'var(--ok)':'var(--t3)';}if(btn)btn.disabled=wc<min;}
+function sSubOpen(id){const txt=S.sOpenSt[id]?.txt||'';S.sOpenSt[id]={txt,sub:true};S.sProg[id]={done:true,ans:txt};sRefreshBlock(id);sRefreshProgress();showToast('Ingediend! ✅','ok');}
+function sRefreshBlock(id){const el=document.getElementById('sblk-'+id);if(!el)return;const block=(EDIT_BLOCKS[S.currentPad]||[]).find(b=>b.id===id);if(!block)return;const tmp=document.createElement('div');tmp.innerHTML=renderStudentBlock(block,isPadExpiredForStudent(S.currentPad));if(tmp.firstElementChild)el.replaceWith(tmp.firstElementChild);}
+
+function modalHTML(){
+  const m=S.modal;
+
+  // ── Leerling toewijzen aan klas (pending) ──
+  if(m.type==='assign'){const st=m.st;
+    return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox">
+      <div class="mt">Leerling toewijzen aan klas <button class="mc_" onclick="upd({modal:null})">×</button></div>
+      <div style="display:flex;align-items:center;gap:10px;background:var(--bg2);border-radius:var(--rs);padding:10px 12px;margin-bottom:14px">${av(st.name,st.color,34)}<div><div style="font-size:14px;font-weight:700">${st.name}</div><div style="font-size:12px;color:var(--t3)">${st.email}</div></div></div>
+      <div class="fg"><label class="fl">Kies een klas</label>
+        <select class="fi" id="ac-cls"><option value="">— Selecteer klas —</option>${CLASSES_DATA.map(c=>`<option value="${c.id}">${c.name} — ${c.year}</option>`).join('')}</select>
+      </div>
+      <div style="display:flex;gap:7px"><button class="btn bp" style="flex:1;justify-content:center" onclick="doAssign('${st.id}')">Toewijzen</button><button class="btn bs" onclick="upd({modal:null})">Annuleer</button></div>
+    </div></div>`;
+  }
+
+  // ── Nieuwe klas ──
+  if(m.type==='new-klas'){
+    const col=S._newKlasColor||CPAL_OPTS[0];
+    return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox">
+      <div class="mt">Nieuwe klas aanmaken <button class="mc_" onclick="upd({modal:null})">×</button></div>
+      <div class="fg"><label class="fl">Naam van de klas</label><input class="fi" id="nk-nm" placeholder="Bv. 1A, 2B, 3WW" autofocus></div>
+      <div class="fg"><label class="fl">Schooljaar</label><input class="fi" id="nk-yr" value="2024-2025"></div>
+      <div class="fg"><label class="fl">Beschrijving</label><input class="fi" id="nk-desc" placeholder="Bv. Eerste graad A"></div>
+      <div class="fg"><label class="fl">Kleur</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${CPAL_OPTS.map(c=>`<div style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${col===c?'var(--t)':'transparent'};transition:transform .1s;${col===c?'transform:scale(1.2)':''}" onclick="S._newKlasColor='${c}';renderAll()"></div>`).join('')}</div>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="btn bp" style="flex:1;justify-content:center" onclick="createKlas()">Klas aanmaken</button>
+        <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+      </div>
+    </div></div>`;
+  }
+
+  // ── Klas bewerken ──
+  if(m.type==='edit-klas'){const klas=m.klas;
+    const col=S._editKlasColor||klas.color;
+    return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox">
+      <div class="mt">Klas bewerken <button class="mc_" onclick="upd({modal:null})">×</button></div>
+      <div class="fg"><label class="fl">Naam</label><input class="fi" id="ek-nm" value="${esc(klas.name)}"></div>
+      <div class="fg"><label class="fl">Schooljaar</label><input class="fi" id="ek-yr" value="${esc(klas.year)}"></div>
+      <div class="fg"><label class="fl">Beschrijving</label><input class="fi" id="ek-desc" value="${esc(klas.desc||'')}"></div>
+      <div class="fg"><label class="fl">Kleur</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${CPAL_OPTS.map(c=>`<div style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${col===c?'var(--t)':'transparent'};transition:transform .1s;${col===c?'transform:scale(1.2)':''}" onclick="S._editKlasColor='${c}';renderAll()"></div>`).join('')}</div>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="btn bp" style="flex:1;justify-content:center" onclick="saveKlas('${klas.id}')">Opslaan</button>
+        <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+        <button class="btn bd bsm" onclick="deleteKlas('${klas.id}')">${ic('trash',11)} Verwijder</button>
+      </div>
+    </div></div>`;
+  }
+
+  // ── Leerpad toewijzen: keuze klas of leerlingen ──
+  if(m.type==='assign-pad-klas'){const classId=m.classId;const cls=CLASSES[classId];
+    const mode=m.mode||null; // null=keuze, 'klas'=hele klas, 'students'=leerlingen kiezen
+
+    // Stap 0: keuze
+    if(!mode) return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox" style="max-width:440px">
+      <div class="mt">Leerpad toewijzen — klas <span style="color:${cls?.color};font-weight:800">${cls?.name}</span><button class="mc_" onclick="upd({modal:null})">×</button></div>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:18px">Aan wie wil je een leerpad toewijzen?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+        <button onclick="upd({modal:{...S.modal,mode:'klas',padChecks:{},padDates:{}}})" style="padding:20px 12px;border:2px solid var(--bdr);border-radius:var(--r);background:var(--w);cursor:pointer;text-align:center;transition:all .14s;font-family:inherit" onmouseenter="this.style.borderColor='var(--p)';this.style.background='var(--pl)'" onmouseleave="this.style.borderColor='var(--bdr)';this.style.background='var(--w)'">
+          <div style="font-size:28px;margin-bottom:8px">👥</div>
+          <div style="font-size:14px;font-weight:800;color:var(--t)">Hele klas</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:4px">Alle leerlingen van ${cls?.name}</div>
+        </button>
+        <button onclick="upd({modal:{...S.modal,mode:'students',selSts:[],padChecks:{},padDates:{}}})" style="padding:20px 12px;border:2px solid var(--bdr);border-radius:var(--r);background:var(--w);cursor:pointer;text-align:center;transition:all .14s;font-family:inherit" onmouseenter="this.style.borderColor='var(--p)';this.style.background='var(--pl)'" onmouseleave="this.style.borderColor='var(--bdr)';this.style.background='var(--w)'">
+          <div style="font-size:28px;margin-bottom:8px">🧑‍🎓</div>
+          <div style="font-size:14px;font-weight:800;color:var(--t)">Leerling(en)</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:4px">Kies één of meerdere</div>
+        </button>
+      </div>
+      <button class="btn bs" style="width:100%;justify-content:center" onclick="upd({modal:null})">Annuleer</button>
+    </div></div>`;
+
+    // Stap 1a: hele klas → pad + periode kiezen
+    if(mode==='klas') return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox" style="max-width:580px;max-height:90vh;overflow-y:auto">
+      <div class="mt" style="position:sticky;top:0;background:var(--w);z-index:2;padding-bottom:10px;border-bottom:1px solid var(--bdr);margin-bottom:12px">
+        <button class="btn bg_ bxs" onclick="upd({modal:{...S.modal,mode:null}})" style="margin-right:6px">←</button>
+        Leerpaden voor hele klas <span style="color:${cls?.color};font-weight:800">${cls?.name}</span>
+        <button class="mc_" onclick="upd({modal:null})">×</button>
+      </div>
+      <div class="info-b" style="margin-bottom:14px">${ic('alert',13,'#4338ca')}<span>Vink een leerpad aan en stel een periode in. Alle leerlingen van <strong>${cls?.name}</strong> krijgen toegang binnen die periode.</span></div>
+      ${renderPadTree(null,'apc',classId,null)}
+      <div style="display:flex;gap:7px;margin-top:14px;position:sticky;bottom:0;background:var(--w);padding-top:10px;border-top:1px solid var(--bdr)">
+        <button class="btn bp" style="flex:1;justify-content:center" onclick="savePadKlas('${classId}')">Opslaan</button>
+        <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+      </div>
+    </div></div>`;
+
+    // Stap 1b: leerlingen aanvinken
+    const selSts=m.selSts||[];
+    const klasSts=T_STUDENTS.filter(s=>s.classId===classId);
+    if(mode==='students'&&!m.step2) return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox" style="max-width:460px">
+      <div class="mt">
+        <button class="btn bg_ bxs" onclick="upd({modal:{...S.modal,mode:null}})" style="margin-right:6px">←</button>
+        Kies leerlingen — klas ${cls?.name}
+        <button class="mc_" onclick="upd({modal:null})">×</button>
+      </div>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:14px">Vink de leerlingen aan voor wie je een leerpad wilt toewijzen.</p>
+      <div style="margin-bottom:14px">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg2);border-radius:var(--rs);margin-bottom:8px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--t2)">
+          <input type="checkbox" id="sel-all" style="width:15px;height:15px;accent-color:var(--p)" onchange="toggleAllStudents(this.checked,'${classId}')">
+          Alle leerlingen selecteren
+        </label>
+        ${klasSts.map(st=>{const isSel=selSts.includes(st.id);return`<label style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:1.5px solid ${isSel?'var(--pb)':'var(--bdr)'};border-radius:var(--rs);margin-bottom:6px;cursor:pointer;background:${isSel?'var(--pl)':'var(--w)'};transition:all .12s">
+          <input type="checkbox" id="stsel-${st.id}" ${isSel?'checked':''} style="width:15px;height:15px;accent-color:var(--p);flex-shrink:0" onchange="toggleStudentSel('${st.id}','${classId}',this.checked)">
+          ${av(st.name,st.color,28)}
+          <span style="flex:1;font-size:13px;font-weight:600;color:var(--t)">${st.name}</span>
+          ${isSel?`<span style="color:var(--p);font-size:12px;font-weight:700">✓</span>`:''}
+        </label>`;}).join('')}
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="btn bp" style="flex:1;justify-content:center" onclick="goToStep2('${classId}')" ${selSts.length===0?'disabled':''}>Verder (${selSts.length} geselecteerd) →</button>
+        <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+      </div>
+    </div></div>`;
+
+    // Stap 2: pad + periode kiezen voor geselecteerde leerlingen
+    if(mode==='students'&&m.step2){
+      const names=klasSts.filter(s=>selSts.includes(s.id)).map(s=>s.name.split(' ')[0]).join(', ');
+      // render tree voor eerste geselecteerde leerling als richtlijn
+      const refSt=klasSts.find(s=>selSts.includes(s.id));
+      return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox" style="max-width:580px;max-height:90vh;overflow-y:auto">
+        <div class="mt" style="position:sticky;top:0;background:var(--w);z-index:2;padding-bottom:10px;border-bottom:1px solid var(--bdr);margin-bottom:12px">
+          <button class="btn bg_ bxs" onclick="upd({modal:{...S.modal,step2:false}})" style="margin-right:6px">←</button>
+          Leerpaden voor ${selSts.length} leerling${selSts.length>1?'en':''}
+          <button class="mc_" onclick="upd({modal:null})">×</button>
+        </div>
+        <div style="background:var(--pl);border:1px solid var(--pb);border-radius:var(--rs);padding:8px 12px;margin-bottom:14px;font-size:12.5px;color:#3730a3">
+          ${ic('users',12,'#4338ca')} <strong>${names}</strong> krijgen de geselecteerde leerpaden + periode.
+        </div>
+        <div class="info-b" style="margin-bottom:14px">${ic('alert',13,'#4338ca')}<span>Vink leerpaden aan en stel een periode in.</span></div>
+        ${renderPadTree(null,'aps',null,refSt)}
+        <div style="display:flex;gap:7px;margin-top:14px;position:sticky;bottom:0;background:var(--w);padding-top:10px;border-top:1px solid var(--bdr)">
+          <button class="btn bp" style="flex:1;justify-content:center" onclick="savePadMultiStudent()">Opslaan voor ${selSts.length} leerling${selSts.length>1?'en':''}</button>
+          <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+        </div>
+      </div></div>`;
+    }
+  }
+
+  // ── Leerpad toewijzen aan individuele leerling (vanuit detail) ──
+  if(m.type==='assign-pad-student'){const st=m.student;
+    return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox" style="max-width:580px;max-height:90vh;overflow-y:auto">
+      <div class="mt" style="position:sticky;top:0;background:var(--w);z-index:2;padding-bottom:10px;border-bottom:1px solid var(--bdr);margin-bottom:12px">
+        Leerpaden voor ${st.name.split(' ')[0]}
+        <button class="mc_" onclick="upd({modal:null})">×</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:var(--bg2);border-radius:var(--rs);padding:10px 13px;margin-bottom:14px">
+        ${av(st.name,st.color,34)}<div><div style="font-size:14px;font-weight:700">${st.name}</div><div style="font-size:12px;color:var(--t3);margin-top:2px">${clsBadge(st.classId)}</div></div>
+      </div>
+      <div class="info-b" style="margin-bottom:14px">${ic('alert',13,'#4338ca')}<span>Vink leerpaden aan en stel een periode in.</span></div>
+      ${renderPadTree(null,'aps',null,st)}
+      <div style="display:flex;gap:7px;margin-top:14px;position:sticky;bottom:0;background:var(--w);padding-top:10px;border-top:1px solid var(--bdr)">
+        <button class="btn bp" style="flex:1;justify-content:center" onclick="savePadStudent('${st.id}','${st.classId}')">Opslaan</button>
+        <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+      </div>
+    </div></div>`;
+  }
+
+  // ── Leerstudio: nieuw item aanmaken ──
+  if(m.type==='studio-new'){
+    const fid=m.folderId;
+    const folder=fid?FOLDERS.find(f=>f.id===fid):null;
+    const context=folder?`in map "${folder.name}"`:'als hoofdmap';
+    return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox" style="max-width:380px">
+      <div class="mt">Wat wil je aanmaken? <button class="mc_" onclick="upd({modal:null})">×</button></div>
+      <div style="display:grid;gap:10px">
+        <button onclick="upd({modal:{type:'studio-new-name',kind:'folder',folderId:'${fid||''}'}})"
+          style="padding:16px;border:2px solid var(--bdr);border-radius:var(--r);background:var(--w);cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;gap:12px;transition:all .14s"
+          onmouseenter="this.style.borderColor='#f59e0b';this.style.background='#fffbeb'"
+          onmouseleave="this.style.borderColor='var(--bdr)';this.style.background='var(--w)'">
+          ${ic('folder',22,'#f59e0b')}
+          <div><div style="font-size:14px;font-weight:800;color:var(--t)">${fid?'Nieuwe submap':'Nieuwe hoofdmap'}</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:2px">Map aanmaken ${context}</div></div>
+        </button>
+        <button onclick="upd({modal:{type:'studio-new-name',kind:'pad',folderId:'${fid||''}'}})"
+          style="padding:16px;border:2px solid var(--bdr);border-radius:var(--r);background:var(--w);cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;gap:12px;transition:all .14s"
+          onmouseenter="this.style.borderColor='var(--p)';this.style.background='var(--pl)'"
+          onmouseleave="this.style.borderColor='var(--bdr)';this.style.background='var(--w)'">
+          ${ic('file',22,'var(--p)')}
+          <div><div style="font-size:14px;font-weight:800;color:var(--t)">Nieuw MathPad</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:2px">Leerpaden aanmaken ${context}</div></div>
+        </button>
+      </div>
+      <button class="btn bs" style="width:100%;justify-content:center;margin-top:12px" onclick="upd({modal:null})">Annuleer</button>
+    </div></div>`;
+  }
+
+  if(m.type==='studio-new-name'){
+    const isFolder=m.kind==='folder';const fid=m.folderId||null;
+    const folder=fid?FOLDERS.find(f=>f.id===fid):null;
+    return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox" style="max-width:380px">
+      <div class="mt">${isFolder?(fid?'Nieuwe submap':'Nieuwe hoofdmap'):'Nieuw MathPad'} <button class="mc_" onclick="upd({modal:null})">×</button></div>
+      ${folder?`<div style="font-size:12.5px;color:var(--t2);margin-bottom:10px;display:flex;align-items:center;gap:5px">${ic('folder',12,'#f59e0b')} In: ${folder.name}</div>`:''}
+      <div class="fg"><label class="fl">Naam</label>
+        <input class="fi" id="sn-name" value="${isFolder?'Nieuwe map':'Nieuw MathPad'}" autofocus
+          onkeydown="if(event.key==='Enter')doStudioNew('${m.kind}','${fid||''}')">
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="btn bp" style="flex:1;justify-content:center" onclick="doStudioNew('${m.kind}','${fid||''}')">Aanmaken</button>
+        <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+      </div>
+    </div></div>`;
+  }
+
+  // ── MathPad verplaatsen ──
+  if(m.type==='move-pad'){
+    const pad=PADS.find(p=>p.id===m.padId);
+    const renderMoveFolderTree=(parentId,depth=0)=>{
+      return FOLDERS.filter(f=>f.parentId===parentId).map(f=>`
+        <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${m.targetFolder===f.id?'var(--pl)':'transparent'};border:1.5px solid ${m.targetFolder===f.id?'var(--pb)':'transparent'}">
+          <input type="radio" name="mf" value="${f.id}" ${m.targetFolder===f.id?'checked':''} onchange="S.modal.targetFolder='${f.id}';document.getElementById('move-pad-btn').disabled=false"
+            style="accent-color:var(--p);width:14px;height:14px">
+          ${'&nbsp;'.repeat(depth*4)}${ic('folder',13,'#f59e0b')} <span style="font-size:13px;color:var(--t)">${esc(f.name)}</span>
+          ${pad?.folderId===f.id?`<span style="font-size:10.5px;color:var(--t3)">(huidig)</span>`:''}
+        </label>
+        ${renderMoveFolderTree(f.id,depth+1)}
+      `).join('');
+    };
+    return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox" style="max-width:400px">
+      <div class="mt">MathPad verplaatsen <button class="mc_" onclick="upd({modal:null})">×</button></div>
+      <div style="font-size:13px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px">${ic('file',14,'var(--p)')} ${esc(pad?.title||'')}</div>
+      <div style="border:1px solid var(--bdr);border-radius:var(--rs);overflow:hidden;max-height:260px;overflow-y:auto">
+        ${renderMoveFolderTree(null)}
+        ${FOLDERS.length===0?`<div class="empty-s">Geen mappen beschikbaar.</div>`:''}
+      </div>
+      <div style="display:flex;gap:7px;margin-top:12px">
+        <button id="move-pad-btn" class="btn bp" style="flex:1;justify-content:center" disabled onclick="doMovePad('${m.padId}')">Verplaatsen</button>
+        <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+      </div>
+    </div></div>`;
+  }
+
+  // ── Wachtwoord resetten ──
+  if(m.type==='reset-pw'){
+    const isBulk=!m.st&&m.classId;
+    const cls=isBulk?CLASSES[m.classId]:null;
+    const sts=isBulk?T_STUDENTS.filter(s=>s.classId===m.classId):[m.st];
+    return`<div class="mbg" onclick="if(event.target===this)upd({modal:null})"><div class="mbox">
+      <div class="mt">${ic('lock',15)} Wachtwoord resetten <button class="mc_" onclick="upd({modal:null})">×</button></div>
+      ${isBulk
+        ?`<div class="warn-b" style="margin-bottom:14px">${ic('alert',13,'#d97706')}<span>Je staat op het punt het wachtwoord van <strong>${sts.length} leerlingen</strong> van klas <strong>${cls?.name}</strong> te resetten.</span></div>
+          <div style="background:var(--bg2);border-radius:var(--rs);padding:10px 12px;margin-bottom:14px;max-height:160px;overflow-y:auto">
+            ${sts.map(s=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9">${av(s.name,s.color,24)}<span style="font-size:13px">${s.name}</span></div>`).join('')}
+          </div>`
+        :`<div style="display:flex;align-items:center;gap:10px;background:var(--bg2);border-radius:var(--rs);padding:10px 12px;margin-bottom:14px">
+          ${av(m.st.name,m.st.color,34)}<div><div style="font-size:14px;font-weight:700">${m.st.name}</div></div>
+        </div>`
+      }
+      <div class="fg"><label class="fl">Nieuw tijdelijk wachtwoord</label>
+        <input class="fi" id="pw-new" value="TijdelijkPW1" placeholder="Nieuw wachtwoord">
+        <div style="font-size:11.5px;color:var(--t3);margin-top:4px">De leerling ziet dit wachtwoord bij de volgende aanmelding.</div>
+      </div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--t2)">
+        <input type="checkbox" id="pw-force" checked style="accent-color:var(--p);width:15px;height:15px"> Leerling moet wachtwoord wijzigen bij eerste aanmelding
+      </label></div>
+      <div style="display:flex;gap:7px">
+        <button class="btn bp" style="flex:1;justify-content:center" onclick="doResetPw(${isBulk?`'${m.classId}',true`:`'${m.st?.id}',false`})">Wachtwoord resetten</button>
+        <button class="btn bs" onclick="upd({modal:null})">Annuleer</button>
+      </div>
+    </div></div>`;
+  }
+
+  return'';
+}
+
+function doAssign(sid){const classId=document.getElementById('ac-cls')?.value;if(!classId){showToast('Selecteer een klas','info');return;}const pi=T_PENDING.findIndex(p=>p.id===sid);if(pi>=0){const p=T_PENDING[pi];T_PENDING.splice(pi,1);T_STUDENTS.push({id:p.id,name:p.name,classId,color:p.color,score:0,done:0,total:9,lastActive:'Net aangemeld'});}upd({modal:null});showToast('Leerling toegewezen aan klas '+CLASSES[classId]?.name,'ok');}
+
+function createKlas(){
+  const nm=document.getElementById('nk-nm')?.value.trim();if(!nm){showToast('Vul een naam in','info');return;}
+  const yr=document.getElementById('nk-yr')?.value.trim()||'2024-2025';
+  const desc=document.getElementById('nk-desc')?.value.trim()||nm;
+  const col=S._newKlasColor||CPAL_OPTS[0];
+  const id='c-'+Date.now();
+  CLASSES_DATA.push({id,name:nm,year:yr,color:col,desc});
+  CLASSES[id]={id,name:nm,year:yr,color:col,desc};
+  upd({modal:null,_newKlasColor:null});showToast(`Klas ${nm} aangemaakt!`,'ok');
+}
+
+function saveKlas(id){
+  const klas=CLASSES_DATA.find(c=>c.id===id);if(!klas)return;
+  klas.name=document.getElementById('ek-nm')?.value.trim()||klas.name;
+  klas.year=document.getElementById('ek-yr')?.value.trim()||klas.year;
+  klas.desc=document.getElementById('ek-desc')?.value.trim()||klas.desc;
+  klas.color=S._editKlasColor||klas.color;
+  CLASSES[id]=klas;
+  upd({modal:null,_editKlasColor:null});showToast('Klas opgeslagen','ok');
+}
+
+function deleteKlas(id){
+  if(!confirm('Klas verwijderen? Leerlingen worden niet verwijderd.'))return;
+  const idx=CLASSES_DATA.findIndex(c=>c.id===id);if(idx>=0)CLASSES_DATA.splice(idx,1);delete CLASSES[id];
+  upd({modal:null,selKlas:null});showToast('Klas verwijderd','info');
+}
+
+// Rendert de mappenstructuur recursief als checkboxlijst in de toewijzingsmodals.
+// prefix = 'apc' (klas) of 'aps' (leerling)
+// classId = klas-id wanneer klas-modal, null bij leerling-modal
+// student = leerling-object wanneer leerling-modal, null bij klas-modal
+function renderPadTree(parentFolderId, prefix, classId, student){
+  if(!S.modalFolderExp) S.modalFolderExp = new Set();
+  if(S.modalFolderExp.size === 0){
+    FOLDERS.forEach(f => S.modalFolderExp.add(f.id));
+  }
+  const folders = FOLDERS.filter(f => f.parentId === parentFolderId);
+  // Enkel gepubliceerde pads tonen in toewijzingsmodal
+  const rootPads = PADS.filter(p => p.folderId === parentFolderId && p.published);
+  let html = '';
+
+  // MathPads op root-niveau (buiten een map)
+  for(const pad of rootPads){
+    html += padCheckRow(pad, prefix, classId, student);
+  }
+
+  for(const folder of folders){
+    const padsInFolder = collectAllPads(folder.id);
+    if(padsInFolder.length === 0) continue;
+    const isOpen = S.modalFolderExp.has(folder.id);
+    const activeCount = padsInFolder.filter(pad =>
+      classId ? (pad.classIds||[]).includes(classId)
+              : student && ((S.studentPadAccess||{})['st-'+student.id+'-pad-'+pad.id]===true || (pad.classIds||[]).includes(student.classId))
+    ).length;
+
+    html += `<div style="margin-bottom:5px">
+      <div onclick="toggleModalFolder('${folder.id}')" style="display:flex;align-items:center;gap:7px;padding:8px 10px;background:${isOpen?'#f0f7ff':'#f8fafc'};border:1.5px solid ${isOpen?'#bfdbfe':'var(--bdr)'};border-radius:8px;cursor:pointer;user-select:none;transition:all .12s">
+        <span style="font-size:10px;color:var(--t3);transition:transform .15s;display:inline-block;transform:rotate(${isOpen?'90':'0'}deg)">▶</span>
+        ${ic('folder',14,isOpen?'#f59e0b':'var(--t3)')}
+        <span style="flex:1;font-size:13px;font-weight:700;color:var(--t)">${esc(folder.name)}</span>
+        <span style="font-size:11px;color:var(--t3)">${padsInFolder.length} leerpad${padsInFolder.length!==1?'en':''}</span>
+        ${activeCount>0?`<span style="background:var(--ok-b);color:var(--ok);border:1px solid var(--ok-br);border-radius:8px;padding:1px 7px;font-size:10.5px;font-weight:700">${activeCount} actief</span>`:''}
+      </div>
+      ${isOpen?`<div style="padding:8px 4px 4px 20px;border-left:2px solid #dbeafe;margin-left:7px;margin-top:3px">
+        ${renderPadTree(folder.id, prefix, classId, student)}
+      </div>`:''}
+    </div>`;
+  }
+  return html || `<div class="empty-s" style="padding:12px">Geen leerpaden gevonden.</div>`;
+}
+
+function toggleModalFolder(folderId){
+  if(!S.modalFolderExp) S.modalFolderExp = new Set();
+  const e = new Set(S.modalFolderExp);
+  e.has(folderId) ? e.delete(folderId) : e.add(folderId);
+  S.modalFolderExp = e;
+  // Herrender alleen de modal layer (padChecks staan in state, niet in DOM)
+  const ml = document.getElementById('modal-layer');
+  if(ml && S.modal) ml.innerHTML = modalHTML();
+}
+
+// Verzamel alle pads recursief onder een map
+function collectAllPads(folderId){
+  // Alleen gepubliceerde pads tellen voor de toewijzingsmodal
+  const direct = PADS.filter(p => p.folderId === folderId && p.published);
+  const subFolders = FOLDERS.filter(f => f.parentId === folderId);
+  return [...direct, ...subFolders.flatMap(f => collectAllPads(f.id))];
+}
+
+// Render één pad-rij met checkbox + periode-invoer
+function padCheckRow(pad, prefix, classId, student){
+  const blocks = EDIT_BLOCKS[pad.id] || [];
+  const targetId = classId || student?.id || '';
+
+  // Bepaal de aanvinkstatus vanuit STATE (S.modal.padChecks), niet DOM
+  let isActive = false;
+  if(classId){
+    isActive = (pad.classIds||[]).includes(classId);
+  } else if(student){
+    const key='st-'+student.id+'-pad-'+pad.id;
+    isActive = (S.studentPadAccess||{})[key]===true ||
+               ((S.studentPadAccess||{})[key]!==false && (pad.classIds||[]).includes(student.classId));
+  }
+  // State-override: als gebruiker al geklikt heeft in deze modal-sessie
+  const stateChecked = S.modal?.padChecks?.[pad.id];
+  const isChecked = stateChecked !== undefined ? stateChecked : isActive;
+
+  const assign = getAssign(pad.id, targetId);
+  // Datums vanuit state als beschikbaar, anders bestaande toewijzing of vandaag
+  const stDates = S.modal?.padDates?.[pad.id];
+  const fromVal = stDates?.from ?? assign?.from ?? today();
+  const toVal   = stDates?.to   ?? assign?.to   ?? '';
+
+  const isKlas  = !!classId;
+  const activeColor = isKlas?'var(--ok)':'var(--p)';
+  const activeBg    = isKlas?'var(--ok-b)':'var(--pl)';
+  const activeBdr   = isKlas?'var(--ok-br)':'var(--pb)';
+  const pubBadge = pad.published
+    ?`<span style="background:#dcfce7;color:#166534;padding:1px 6px;border-radius:8px;font-size:9.5px;font-weight:700">✓ Gepubliceerd</span>`
+    :`<span style="background:#fffbeb;color:#92400e;padding:1px 6px;border-radius:8px;font-size:9.5px;font-weight:700">Concept</span>`;
+
+  return `<div style="margin-bottom:8px">
+    <label style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:1.5px solid ${isChecked?activeBdr:'var(--bdr)'};border-radius:var(--rs);cursor:pointer;background:${isChecked?activeBg:'var(--w)'};transition:all .12s">
+      <input type="checkbox" id="${prefix}-${pad.id}" ${isChecked?'checked':''}
+        style="accent-color:var(--p);width:15px;height:15px;cursor:pointer;flex-shrink:0"
+        onchange="onPadCheck('${pad.id}',this.checked)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:7px;flex-wrap:wrap">${esc(pad.title)} ${pubBadge}</div>
+        <div style="font-size:11.5px;color:var(--t3);margin-top:2px">${blocks.length} blokken${assign?` · 📅 ${assign.from} → ${assign.to||'…'}`:''}</div>
+      </div>
+      ${isChecked?`<span style="color:${activeColor};font-size:12px;font-weight:700;flex-shrink:0">${isKlas?'✓ Actief':'Toegang'}</span>`:''}
+    </label>
+    <div id="period-${pad.id}" style="display:${isChecked?'flex':'none'};align-items:center;gap:8px;margin-top:7px;padding:8px 11px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;flex-wrap:wrap">
+      ${ic('clock',12,'#0284c7')}
+      <span style="font-size:11.5px;font-weight:600;color:#0c4a6e;flex-shrink:0">Periode:</span>
+      <label style="font-size:11.5px;color:var(--t2);display:flex;align-items:center;gap:4px">Van
+        <input type="date" value="${fromVal}" style="border:1px solid var(--bdr);border-radius:5px;padding:3px 6px;font-size:12px;font-family:inherit"
+          oninput="onPadDate('${pad.id}','from',this.value)">
+      </label>
+      <label style="font-size:11.5px;color:var(--t2);display:flex;align-items:center;gap:4px">Tot
+        <input type="date" value="${toVal}" style="border:1px solid var(--bdr);border-radius:5px;padding:3px 6px;font-size:12px;font-family:inherit"
+          oninput="onPadDate('${pad.id}','to',this.value)">
+      </label>
+    </div>
+  </div>`;
+}
+
+// Checkbox klik: sla op in state zonder volledige re-render
+function onPadCheck(padId, checked){
+  if(!S.modal) return;
+  if(!S.modal.padChecks) S.modal.padChecks = {};
+  S.modal.padChecks[padId] = checked;
+  // Toon/verberg periode-rij
+  const row = document.getElementById('period-'+padId);
+  if(row) row.style.display = checked ? 'flex' : 'none';
+}
+
+// Datum wijziging: sla op in state zonder re-render
+function onPadDate(padId, field, val){
+  if(!S.modal) return;
+  if(!S.modal.padDates) S.modal.padDates = {};
+  if(!S.modal.padDates[padId]) S.modal.padDates[padId] = {};
+  S.modal.padDates[padId][field] = val;
+}
+
+function toggleAllStudents(checked, classId){
+  const sts=T_STUDENTS.filter(s=>s.classId===classId);
+  const ids=checked?sts.map(s=>s.id):[];
+  upd({modal:{...S.modal,selSts:ids}});
+}
+function toggleStudentSel(sid, classId, checked){
+  const cur=(S.modal?.selSts||[]);
+  const next=checked?[...cur,sid]:cur.filter(id=>id!==sid);
+  upd({modal:{...S.modal,selSts:next}});
+}
+function goToStep2(classId){
+  if(!(S.modal?.selSts||[]).length){showToast('Selecteer minstens één leerling','info');return;}
+  upd({modal:{...S.modal,step2:true,padChecks:{},padDates:{}}});
+}
+
+function savePadMultiStudent(){
+  const sids=S.modal?.selSts||[];
+  if(!sids.length){showToast('Geen leerlingen geselecteerd','info');return;}
+  const checks=S.modal?.padChecks||{};
+  const dates=S.modal?.padDates||{};
+  const acc={...S.studentPadAccess};
+  PADS.filter(p=>p.published).forEach(pad=>{
+    const checked=checks[pad.id]; // true/false/undefined
+    if(checked===undefined) return; // gebruiker heeft dit pad niet aangeraakt
+    const d=dates[pad.id]||{};
+    sids.forEach(sid=>{
+      const stKey='st-'+sid+'-pad-'+pad.id;
+      const assignKey=padAssignKey(pad.id,sid);
+      acc[stKey]=checked;
+      if(checked){PAD_ASSIGNMENTS[assignKey]={from:d.from||today(),to:d.to||''};}
+      else{delete PAD_ASSIGNMENTS[assignKey];}
+    });
+  });
+  const savedPads=PADS.filter(p=>checks[p.id]===true);
+  upd({modal:null,studentPadAccess:acc});
+  if(savedPads.length){
+    const names=savedPads.map(p=>p.title).join(', ');
+    const stNames=T_STUDENTS.filter(s=>sids.includes(s.id)).map(s=>s.name.split(' ')[0]).join(', ');
+    showToast(`✅ "${names}" toegewezen aan ${stNames}`,'ok');
+  } else {
+    showToast('Geen leerpaden aangevinkt — niets opgeslagen','info');
+  }
+}
+
+function doStudioNew(kind, folderId){
+  const n=document.getElementById('sn-name')?.value.trim();
+  if(!n){showToast('Vul een naam in','info');return;}
+  const fid=folderId||null;
+  if(kind==='folder'){
+    const id='f-'+Date.now();
+    FOLDERS.push({id,name:n,parentId:fid});
+    const e=new Set(S.folderExp);if(fid)e.add(fid);e.add(id);
+    upd({modal:null,folderExp:e});showToast(`Map "${n}" aangemaakt`,'ok');
+  } else {
+    const targetFolder=fid||(PADS.find(p=>p.id===S.studioSelPad)?.folderId)||FOLDERS[0]?.id||null;
+    const id='mp-'+Date.now();
+    PADS.push({id,title:n,folderId:targetFolder,published:false,classIds:[]});
+    EDIT_BLOCKS[id]=[];
+    const e=new Set(S.folderExp);if(targetFolder)e.add(targetFolder);S.folderExp=e;
+    upd({modal:null,studioSelPad:id,editBlocks:[],studioSelBlock:null,isDirty:false});
+    showToast(`MathPad "${n}" aangemaakt`,'ok');
+  }
+}
+
+function doMovePad(padId){
+  const targetFolder=S.modal?.targetFolder;
+  if(!targetFolder){showToast('Kies een map','info');return;}
+  const pad=PADS.find(p=>p.id===padId);
+  if(pad){pad.folderId=targetFolder;}
+  const e=new Set(S.folderExp);e.add(targetFolder);
+  upd({modal:null,folderExp:e});showToast('MathPad verplaatst','ok');
+}
+
+function savePadKlas(classId){
+  const checks=S.modal?.padChecks||{};
+  const dates=S.modal?.padDates||{};
+  PADS.forEach(pad=>{
+    const checked=checks[pad.id];
+    if(checked===undefined) return; // niet aangeraakt
+    const key=padAssignKey(pad.id,classId);
+    if(checked){
+      if(!(pad.classIds||[]).includes(classId)) pad.classIds.push(classId);
+      const d=dates[pad.id]||{};
+      PAD_ASSIGNMENTS[key]={from:d.from||today(),to:d.to||''};
+    } else {
+      pad.classIds=(pad.classIds||[]).filter(c=>c!==classId);
+      delete PAD_ASSIGNMENTS[key];
+    }
+  });
+  upd({modal:null});
+  showToast('Leerpaden opgeslagen voor klas '+CLASSES[classId]?.name,'ok');
+}
+
+function savePadStudent(sid,classId){
+  const checks=S.modal?.padChecks||{};
+  const dates=S.modal?.padDates||{};
+  const acc={...S.studentPadAccess};
+  PADS.filter(p=>p.published).forEach(pad=>{
+    const checked=checks[pad.id];
+    if(checked===undefined) return;
+    const stKey='st-'+sid+'-pad-'+pad.id;
+    const assignKey=padAssignKey(pad.id,sid);
+    acc[stKey]=checked;
+    if(checked){
+      const d=dates[pad.id]||{};
+      PAD_ASSIGNMENTS[assignKey]={from:d.from||today(),to:d.to||''};
+    } else {
+      delete PAD_ASSIGNMENTS[assignKey];
+    }
+  });
+  const savedPads2=PADS.filter(p=>checks[p.id]===true);
+  upd({modal:null,studentPadAccess:acc});
+  const stName=T_STUDENTS.find(s=>s.id===sid)?.name||'leerling';
+  if(savedPads2.length){showToast(`✅ "${savedPads2.map(p=>p.title).join(', ')}" → ${stName.split(' ')[0]}`,'ok');}
+  else{showToast('Geen leerpaden aangevinkt — niets opgeslagen','info');}
+}
+
+function doResetPw(idOrClassId,isBulk){
+  const newPw=document.getElementById('pw-new')?.value||'TijdelijkPW1';
+  if(isBulk){const sts=T_STUDENTS.filter(s=>s.classId===idOrClassId);showToast(`Wachtwoord van ${sts.length} leerlingen gereset naar: ${newPw}`,'ok');}
+  else{const st=T_STUDENTS.find(s=>s.id===idOrClassId)||{name:'leerling'};showToast(`Wachtwoord van ${st.name} gereset naar: ${newPw}`,'ok');}
+  upd({modal:null});
+}
+
+let _tt=null;
+function showToast(msg,type='info'){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className=`toast t${type==='ok'?'ok':type==='info'?'in':'er'}`;if(_tt)clearTimeout(_tt);_tt=setTimeout(()=>t.classList.add('hide'),2800);}
+
+function init(){if(!window.katex){setTimeout(init,100);return;}render();}
+init();
+</script>
+</body>
+</html>
