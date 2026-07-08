@@ -1019,21 +1019,18 @@ function tReports(){
   const selPadId=S.reportPad||(PADS.find(p=>p.published)?.id)||null;
   const selPad=PADS.find(p=>p.id===selPadId);
   const blocks=(EDIT_BLOCKS[selPadId]||[]).sort((a,b)=>a.order-b.order);
-  const DEMO_SCORES={'b1':{avg:94,att:5},'b2':{avg:88,att:5},'b3':{avg:52,att:5},'b4':{avg:78,att:5},'b5':{avg:41,att:4},'b6':{avg:63,att:3}};
-  const blockRows=blocks.map(b=>{const sc=DEMO_SCORES[b.id]||{avg:Math.floor(50+Math.random()*45),att:Math.floor(2+Math.random()*4)};const col=sc.avg>=80?'var(--ok)':sc.avg>=55?'var(--wn)':'var(--er)';return{b,sc,col};});
-  const sorted=[...blockRows].sort((a,b)=>a.sc.avg-b.sc.avg);
 
   if(!S.reportFolderExp) S.reportFolderExp=new Set(FOLDERS.map(f=>f.id));
 
+  // Mappenstructuur links
   const renderTree=(parentId,depth=0)=>FOLDERS.filter(f=>f.parentId===parentId).map(f=>{
     const exp=S.reportFolderExp.has(f.id);
     const pads=PADS.filter(p=>p.folderId===f.id&&p.published);
     const hasSubs=FOLDERS.some(sf=>sf.parentId===f.id);
-    if(!pads.length&&!hasSubs)return'';
+    if(!pads.length&&!hasSubs)return '';
     const pl=depth*16;
     return`<div style="margin-bottom:2px">
-      <div onclick="toggleReportFolder('${f.id}')"
-        onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'"
+      <div onclick="toggleReportFolder('${f.id}')" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'"
         style="display:flex;align-items:center;gap:8px;padding:8px 10px 8px ${pl+10}px;border-radius:8px;cursor:pointer;user-select:none;background:transparent;transition:background .1s">
         <span style="font-size:10px;color:${exp?'var(--t2)':'var(--t3)'};display:inline-block;transform:rotate(${exp?90:0}deg);transition:transform .15s;flex-shrink:0">▶</span>
         ${ic('folder',15,exp?'#f59e0b':'#cbd5e1')}
@@ -1041,22 +1038,23 @@ function tReports(){
         ${pads.length?`<span style="font-size:10.5px;color:var(--t3);background:var(--bg);border:1px solid var(--bdr);padding:1px 7px;border-radius:10px;flex-shrink:0">${pads.length}</span>`:''}
       </div>
       ${exp?`<div style="margin-left:${pl+20}px;border-left:2px solid #e2e8f0;padding-left:6px;margin-bottom:4px">
-        ${pads.map(pad=>{
-          const isSel=pad.id===selPadId;
-          return`<div onclick="upd({reportPad:'${pad.id}'})"
-            onmouseenter="this.style.background='${isSel?'var(--pl)':'#f8faff'}'" onmouseleave="this.style.background='${isSel?'var(--pl)':'transparent'}'"
-            style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:2px;border-radius:7px;cursor:pointer;background:${isSel?'var(--pl)':'transparent'};border:1.5px solid ${isSel?'var(--pb)':'transparent'};transition:all .1s">
-            ${ic('file',14,isSel?'var(--p)':'#94a3b8')}
-            <span style="font-size:13px;font-weight:${isSel?700:500};color:${isSel?'var(--p)':'var(--t)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(pad.title)}</span>
-            ${isSel?`<span style="font-size:12px;color:var(--p);font-weight:700;flex-shrink:0">✓</span>`:''}
-          </div>`;
-        }).join('')}
+        ${pads.map(pad=>{const isSel=pad.id===selPadId;return`<div onclick="upd({reportPad:'${pad.id}'})"
+          onmouseenter="this.style.background='${isSel?'var(--pl)':'#f8faff'}'" onmouseleave="this.style.background='${isSel?'var(--pl)':'transparent'}'"
+          style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:2px;border-radius:7px;cursor:pointer;background:${isSel?'var(--pl)':'transparent'};border:1.5px solid ${isSel?'var(--pb)':'transparent'};transition:all .1s">
+          ${ic('file',14,isSel?'var(--p)':'#94a3b8')}
+          <span style="font-size:13px;font-weight:${isSel?700:500};color:${isSel?'var(--p)':'var(--t)'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(pad.title)}</span>
+          ${isSel?'<span style="font-size:12px;color:var(--p);font-weight:700;flex-shrink:0">✓</span>':''}
+        </div>`;}).join('')}
         ${renderTree(f.id,depth+1)}
       </div>`:''}
     </div>`;
   }).join('');
 
-  const treeHTML=renderTree(null);
+  // Toewijzingen voor geselecteerd pad
+  const klasToewijzingen=selPad?(CLASSES_DATA.filter(c=>(selPad.classIds||[]).includes(c.id))||[]):[];
+  const indivToewijzingen=selPad?T_STUDENTS.filter(s=>(S.studentPadAccess||{})['st-'+s.id+'-pad-'+selPad.id]===true):[];
+
+  const BLK_TYPE_LABELS={THEORY:'Theorie',EXAMPLE:'Voorbeeld',FILL_IN:'Invuloefening',MULTIPLE_CHOICE:'Meerkeuze',MATCHING:'Verbindvraag',OPEN:'Open vraag'};
 
   return`<div>
     <div style="display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start">
@@ -1066,68 +1064,86 @@ function tReports(){
         <div style="padding:14px 16px 10px;border-bottom:1px solid var(--bdr);background:var(--bg2)">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)">MathPad kiezen</div>
         </div>
-        <div style="padding:8px 8px;max-height:calc(100vh - 220px);overflow-y:auto">
-          ${treeHTML||`<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Geen gepubliceerde leerpaden.</div>`}
+        <div style="padding:8px;max-height:calc(100vh - 220px);overflow-y:auto">
+          ${renderTree(null)||'<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Geen gepubliceerde leerpaden.</div>'}
         </div>
       </div>
 
-      <!-- Rechterpaneel: analyse -->
+      <!-- Rechterpaneel -->
       <div>
         ${!selPad
           ?`<div class="card cp" style="text-align:center;padding:48px 20px;color:var(--t3)">
-              ${ic('chart',32,'var(--t3)')}<br><br>
-              <div style="font-size:15px;font-weight:600;color:var(--t2);margin-top:4px">Kies een MathPad</div>
+              ${ic('chart',32,'var(--t3)')}
+              <div style="font-size:15px;font-weight:600;color:var(--t2);margin-top:12px">Kies een MathPad</div>
               <div style="font-size:13px;margin-top:6px">Selecteer een leerpad in de mappenstructuur links.</div>
             </div>`
-          :`<div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-              <div style="background:var(--pl);border:1.5px solid var(--pb);border-radius:9px;padding:8px 14px;display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-                ${ic('file',16,'var(--p)')}
+          :`<div style="display:flex;flex-direction:column;gap:14px">
+
+            <!-- Leerpad info -->
+            <div class="card cp">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--bdr)">
+                ${ic('file',18,'var(--p)')}
                 <div>
-                  <div style="font-size:15px;font-weight:800;color:var(--p)">${esc(selPad.title)}</div>
-                  <div style="font-size:11.5px;color:var(--t3);margin-top:1px">${FOLDERS.find(f=>f.id===selPad.folderId)?.name||''}</div>
+                  <div style="font-size:16px;font-weight:800;color:var(--t)">${esc(selPad.title)}</div>
+                  <div style="font-size:12px;color:var(--t3);margin-top:2px">${FOLDERS.find(f=>f.id===selPad.folderId)?.name||''}</div>
+                </div>
+                <span class="bdg bgreen" style="margin-left:auto">Gepubliceerd</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                <div style="background:var(--bg2);border-radius:var(--rs);padding:12px;text-align:center">
+                  <div style="font-size:22px;font-weight:800;color:var(--t)">${blocks.length}</div>
+                  <div style="font-size:12px;color:var(--t3);margin-top:2px">Blokken</div>
+                </div>
+                <div style="background:var(--bg2);border-radius:var(--rs);padding:12px;text-align:center">
+                  <div style="font-size:22px;font-weight:800;color:var(--t)">${klasToewijzingen.length}</div>
+                  <div style="font-size:12px;color:var(--t3);margin-top:2px">Klassen</div>
+                </div>
+                <div style="background:var(--bg2);border-radius:var(--rs);padding:12px;text-align:center">
+                  <div style="font-size:22px;font-weight:800;color:var(--t)">${indivToewijzingen.length}</div>
+                  <div style="font-size:12px;color:var(--t3);margin-top:2px">Individueel</div>
                 </div>
               </div>
             </div>
-            <div class="sg" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
-              <div class="sc"><div class="sc-ic" style="background:#eef2ff">${ic('file',15,'#4f46e5')}</div><div class="sc-n">${blocks.length}</div><div class="sc-l">Blokken</div></div>
-              <div class="sc"><div class="sc-ic" style="background:#ecfdf5">${ic('users',15,'#059669')}</div><div class="sc-n">${T_STUDENTS.length}</div><div class="sc-l">Leerlingen</div></div>
-              <div class="sc"><div class="sc-ic" style="background:#fffbeb">${ic('chart',15,'#d97706')}</div><div class="sc-n">${blockRows.length?Math.round(blockRows.reduce((a,r)=>a+r.sc.avg,0)/blockRows.length):0}%</div><div class="sc-l">Gemiddelde</div></div>
-              <div class="sc"><div class="sc-ic" style="background:#fff1f2">${ic('alert',15,'#e11d48')}</div><div class="sc-n">${blockRows.filter(r=>r.sc.avg<55).length}</div><div class="sc-l">Moeilijk</div></div>
-            </div>
-            <div class="two-col">
-              <div class="card cp">
-                <div class="ct">Gemiddelde score per blok</div>
-                ${blockRows.length===0?`<div class="empty-s">Geen blokken in dit leerpad.</div>`
-                :blockRows.map(({b,sc,col})=>`<div style="margin-bottom:12px">
-                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-                    <span style="font-size:13px;font-weight:600;color:var(--t);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px">${esc(b.title)}</span>
-                    <span style="font-size:14px;font-weight:800;color:${col};flex-shrink:0">${sc.avg}%</span>
-                  </div>
-                  <div style="height:10px;background:#f1f5f9;border-radius:5px;overflow:hidden;margin-bottom:3px">
-                    <div style="height:100%;width:${sc.avg}%;background:${col};border-radius:5px;transition:width .6s"></div>
-                  </div>
-                  <div style="font-size:11px;color:var(--t3)">${sc.att} leerlingen · ${BM[b.type]?.label||b.type}</div>
-                </div>`).join('')}
-              </div>
-              <div class="card cp">
-                <div class="ct">Moeilijkste blokken</div>
-                ${sorted.slice(0,5).map(({b,sc,col},i)=>`<div style="display:flex;align-items:flex-start;gap:12px;padding:11px 12px;background:${sc.avg<55?'var(--er-b)':sc.avg<80?'var(--wn-b)':'var(--ok-b)'};border-radius:9px;margin-bottom:8px;border:1px solid ${sc.avg<55?'var(--er-br)':sc.avg<80?'var(--wn-br)':'var(--ok-br)'}">
-                  <div style="min-width:26px;height:26px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff">${i+1}</div>
+
+            <!-- Blokken overzicht -->
+            ${blocks.length>0?`<div class="card cp">
+              <div class="ct">Blokken (${blocks.length})</div>
+              ${blocks.map((b,i)=>{const lbl=BLK_TYPE_LABELS[b.type]||b.type;const dot={THEORY:'#6366f1',EXAMPLE:'#10b981',FILL_IN:'#f59e0b',MULTIPLE_CHOICE:'#8b5cf6',MATCHING:'#0ea5e9',OPEN:'#e11d48'}[b.type]||'#94a3b8';
+                return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9">
+                  <div style="width:22px;height:22px;border-radius:50%;background:${dot}20;border:1.5px solid ${dot};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${dot};flex-shrink:0">${i+1}</div>
                   <div style="flex:1;min-width:0">
-                    <div style="font-size:13px;font-weight:700;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b.title)}</div>
-                    <div style="font-size:11.5px;color:var(--t3);margin-top:2px">${BM[b.type]?.label||b.type} · ${sc.att} leerlingen</div>
-                    <div style="margin-top:7px;height:7px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden">
-                      <div style="height:100%;width:${sc.avg}%;background:${col};border-radius:4px"></div>
-                    </div>
+                    <div style="font-size:13px;font-weight:600;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b.title)}</div>
+                    <div style="font-size:11.5px;color:var(--t3);margin-top:1px">${lbl}</div>
                   </div>
-                  <span style="font-size:18px;font-weight:900;color:${col};flex-shrink:0;line-height:1.2">${sc.avg}%</span>
-                </div>`).join('')}
-                <div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--bdr)">
-                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:9px">Gemiddelde per bloktype</div>
-                  ${Object.entries(BM).map(([type,bm])=>{const ofType=blockRows.filter(r=>r.b.type===type);if(!ofType.length)return'';const avg=Math.round(ofType.reduce((a,r)=>a+r.sc.avg,0)/ofType.length);const col=avg>=80?'var(--ok)':avg>=55?'var(--wn)':'var(--er)';return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="font-size:12px;color:var(--t2);min-width:115px;text-align:right;font-weight:500">${bm.label}</div><div style="flex:1;height:18px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="height:100%;width:${avg}%;background:${col};border-radius:4px;display:flex;align-items:center;padding-left:7px"><span style="font-size:10.5px;font-weight:700;color:#fff">${avg}%</span></div></div></div>`;}).join('')}
-                </div>
-              </div>
+                </div>`;}).join('')}
+            </div>`:''}
+
+            <!-- Toewijzingen -->
+            <div class="card cp">
+              <div class="ct">Toewijzingen</div>
+              ${klasToewijzingen.length===0&&indivToewijzingen.length===0
+                ?`<div class="empty-s">Dit leerpad is nog niet toegewezen aan klassen of leerlingen.</div>`
+                :`<div>
+                  ${klasToewijzingen.length?`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:8px">Klassen</div>
+                  ${klasToewijzingen.map(cls=>{const a=getAssign(selPad.id,cls.id);const sts=T_STUDENTS.filter(s=>s.classId===cls.id);
+                    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--rs);margin-bottom:7px;border:1px solid var(--bdr)">
+                      <div style="width:10px;height:10px;border-radius:50%;background:${cls.color};flex-shrink:0"></div>
+                      <div style="flex:1">
+                        <div style="font-size:13px;font-weight:700;color:var(--t)">${cls.name} <span style="font-weight:400;color:var(--t3);font-size:12px">· ${sts.length} leerlingen</span></div>
+                        ${a?`<div style="font-size:11.5px;color:#0284c7;margin-top:2px">📅 ${a.from}${a.to?' → '+a.to:' — geen einddatum'}</div>`:''}
+                      </div>
+                    </div>`;}).join('')}`:''  }
+                  ${indivToewijzingen.length?`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:8px;${klasToewijzingen.length?'margin-top:14px':''} ">Individuele leerlingen</div>
+                  ${indivToewijzingen.map(s=>{const a=getAssign(selPad.id,s.id);
+                    return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9">
+                      ${av(s.name,s.color,28)}
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:13px;font-weight:600;color:var(--t)">${s.name}</div>
+                        ${a?`<div style="font-size:11.5px;color:#0284c7;margin-top:1px">📅 ${a.from}${a.to?' → '+a.to:' — geen einddatum'}</div>`:''}
+                      </div>
+                      ${clsBadge(s.classId)}
+                    </div>`;}).join('')}`:''  }
+                </div>`}
             </div>
           </div>`}
       </div>
